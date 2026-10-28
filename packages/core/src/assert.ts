@@ -203,7 +203,9 @@ async function check(a: Assertion, trace: Trace): Promise<Outcome> {
         const step = trace.steps[i];
         return step
           ? fail(`the cost is unknown: ${stepAt(i)} (${stepName(step)}) has no price`, i)
-          : fail('the cost is unknown: the trace has no totals.costUsd');
+          : trace.steps.some((s) => s.type === 'llm')
+            ? fail('the cost is unknown: the trace has no totals.costUsd')
+            : fail('the cost is unknown: no model calls were recorded (add a recorder)');
       }
       if (cost > a.max) {
         const i = maxStep(trace, (s) => (s.type === 'llm' ? (s.costUsd ?? 0) : 0));
