@@ -309,6 +309,25 @@ describe('run failures', () => {
     expect(report.cases[0]?.runs.map((r) => r.run)).toEqual([1, 2, 3, 4, 5, 6]);
   });
 
+  it("passes the case's vars to the agent and keeps them in the trace", async () => {
+    await files({
+      'cases/a.yaml':
+        'id: a\ninput: hi\nvars: { scenario: uk-tuition, wakeup: 2 }\nassert:\n  - max_steps: 0\n',
+      'cases/b.yaml': 'id: b\ninput: hi\nassert:\n  - max_steps: 0\n',
+    });
+    const seen: unknown[] = [];
+    const { traces } = await run(
+      (_input, ctx) => {
+        seen.push(ctx.vars);
+        return 'ok';
+      },
+      { concurrency: 1 },
+    );
+    expect(seen).toEqual([{ scenario: 'uk-tuition', wakeup: 2 }, {}]);
+    expect(traces[0]?.metadata).toMatchObject({ vars: { scenario: 'uk-tuition', wakeup: 2 } });
+    expect(traces[1]?.metadata).not.toHaveProperty('vars');
+  });
+
   it('runs only the cases the filter keeps', async () => {
     await files({
       'cases/a.yaml': 'id: a\ninput: hi\ntags: [smoke]\nassert:\n  - max_steps: 0\n',
@@ -505,5 +524,21 @@ describe('loadConfig', () => {
     expect((err as Error).message).toMatch(
       /my\.config\.mjs: cases: .*; agent: expected a function; Unrecognized key: "concurency"$/,
     );
+  });
+
+  it('resolves the path aliases of the nearest tsconfig.json, in the config and case files', async () => {
+    await files({
+      'tsconfig.json':
+        '{\n  // comments are fine\n  "compilerOptions": { "paths": { "@/*": ["./app/src/*"] } },\n}\n',
+      'app/src/agent.ts': "export const answer = (): string => 'from the app';\n",
+      'evalreplay.config.ts':
+        "import { answer } from '@/agent';\nexport default { cases: 'cases/*.case.ts', agent: () => answer() };\n",
+      'cases/a.case.ts':
+        "import { answer } from '@/agent';\nexport default { id: 'a', input: 'hi', assert: [{ output_contains: answer() }] };\n",
+    });
+    const { config } = await loadConfig(undefined, dir);
+    const { report } = await runCases(config, { cwd: dir });
+    expect(report.errors).toEqual([]);
+    expect(report.summary.runsPassed).toBe(1);
   });
 });

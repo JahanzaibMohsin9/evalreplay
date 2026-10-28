@@ -46,3 +46,19 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+      # CarryPay's agent, offline: its recorded decisions replayed in its sandbox (no API key)
+      - name: Example, CarryPay
+        working-directory: examples/carrypay
+        run: |
+          pnpm run fetch
+          pnpm run eval --compare baseline
+
+      # and a broken tool must fail the run
+      - name: Example, CarryPay with a broken tool
+        working-directory: examples/carrypay
+        run: |
+          if pnpm run eval:broken --compare baseline; then
+            echo "expected the broken verify_beneficiary tool to fail the run"
+            exit 1
+          fi

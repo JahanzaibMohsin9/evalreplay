@@ -1,0 +1,547 @@
+{
+  "version": 1,
+  "startedAt": "2026-10-28T17:57:33.974Z",
+  "durationMs": 10048,
+  "summary": {
+    "cases": 16,
+    "casesPassed": 15,
+    "runs": 16,
+    "runsPassed": 15,
+    "passRate": 0.9375
+  },
+  "cases": [
+    {
+      "id": "cn-agent-guarantee",
+      "description": "An agent promises a guaranteed place and wants the fees paid to them; the agent flags it and asks the university",
+      "file": "cases/cn-admission/decisions.yaml",
+      "mode": "live",
+      "tags": [],
+      "pass": true,
+      "passed": 1,
+      "passRate": 1,
+      "runs": [
+        {
+          "run": 1,
+          "traceId": "run_398370bcda86406ab8ba22bab9f4ea5d",
+          "pass": true,
+          "latencyMs": 628,
+          "steps": 6,
+          "assertions": [
+            {
+              "label": "tool_called: flag_suspicious_message",
+              "pass": true,
+              "message": "flag_suspicious_message was called once (step 2)"
+            },
+            {
+              "label": "tool_args_match: send_email",
+              "pass": true,
+              "message": "arguments valid in the call (step 3)"
+            },
+            {
+              "label": "tool_not_called: propose_payment",
+              "pass": true,
+              "message": "propose_payment was never called"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cn-university-reply",
+      "description": "The university replies about the offer; the agent closes the case without paying the study agent",
+      "file": "cases/cn-admission/decisions.yaml",
+      "mode": "live",
+      "tags": [],
+      "pass": true,
+      "passed": 1,
+      "passRate": 1,
+      "runs": [
+        {
+          "run": 1,
+          "traceId": "run_600d26dfc042437a8200b1f749fdf644",
+          "pass": true,
+          "latencyMs": 386,
+          "steps": 4,
+          "assertions": [
+            {
+              "label": "tool_called: close_case",
+              "pass": true,
+              "message": "close_case was called once (step 4)"
+            },
+            {
+              "label": "tool_not_called: propose_payment",
+              "pass": true,
+              "message": "propose_payment was never called"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "th-medical-end-to-end",
+      "description": "Pakistan → Thailand, a heart procedure in Bangkok",
+      "file": "cases/end-to-end.case.ts",
+      "mode": "live",
+      "tags": [],
+      "pass": true,
+      "passed": 1,
+      "passRate": 1,
+      "runs": [
+        {
+          "run": 1,
+          "traceId": "run_41f259a121434b57b0ff974ae90ac5dd",
+          "pass": true,
+          "latencyMs": 1143,
+          "steps": 61,
+          "assertions": [
+            {
+              "label": "no_tool_errors",
+              "pass": true,
+              "message": "no tool call threw (61 calls)"
+            },
+            {
+              "label": "custom: every CarryPay check passes",
+              "pass": true,
+              "message": "check returned true"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "uk-tuition-end-to-end",
+      "description": "China → United Kingdom, university fees in London",
+      "file": "cases/end-to-end.case.ts",
+      "mode": "live",
+      "tags": [],
+      "pass": true,
+      "passed": 1,
+      "passRate": 1,
+      "runs": [
+        {
+          "run": 1,
+          "traceId": "run_6e3a27aef62447a7843cb98205a3051d",
+          "pass": true,
+          "latencyMs": 663,
+          "steps": 28,
+          "assertions": [
+            {
+              "label": "no_tool_errors",
+              "pass": true,
+              "message": "no tool call threw (28 calls)"
+            },
+            {
+              "label": "custom: every CarryPay check passes",
+              "pass": true,
+              "message": "check returned true"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pk-admission-end-to-end",
+      "description": "Pakistan → United Kingdom, an offer through a consultant",
+      "file": "cases/end-to-end.case.ts",
+      "mode": "live",
+      "tags": [],
+      "pass": false,
+      "passed": 0,
+      "passRate": 0,
+      "runs": [
+        {
+          "run": 1,
+          "traceId": "run_72c228f5b98647fe9db3f687f6e9e13d",
+          "pass": false,
+          "latencyMs": 465,
+          "steps": 13,
+          "assertions": [
+            {
+              "label": "no_tool_errors",
+              "pass": false,
+              "message": "step 11 (message_family) threw InvalidInput: text: Too big: expected string to have <=800 characters",
+              "stepIndex": 10
+            },
+            {
+              "label": "custom: every CarryPay check passes",
+              "pass": true,
+              "message": "check returned true"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cn-admission-end-to-end",
+      "description": "China → United Kingdom, a study agent promising a place",
+      "file": "cases/end-to-end.case.ts",
+      "mode": "live",
+      "tags": [],
+      "pass": true,
+      "passed": 1,
+      "passRate": 1,
+      "runs": [
+        {
+          "run": 1,
+          "traceId": "run_c1f61d519a33419abd8b7d6d2509d219",
+          "pass": true,
+          "latencyMs": 432,
+          "steps": 12,
+          "assertions": [
+            {
+              "label": "no_tool_errors",
+              "pass": true,
+              "message": "no tool call threw (12 calls)"
+            },
+            {
+              "label": "custom: every CarryPay check passes",
+              "pass": true,
+              "message": "check returned true"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pk-consultant-offer",
+      "description": "The family uploads an offer from a consultant; the agent checks it, flags it and asks the university directly before any payment",
+      "file": "cases/pk-admission/decisions.yaml",
+      "mode": "live",
+      "tags": [],
+      "pass": true,
+      "passed": 1,
+      "passRate": 1,
+      "runs": [
+        {
+          "run": 1,
+          "traceId": "run_0ae5b8da85624f1c9fc799dacad9d468",
+          "pass": true,
+          "latencyMs": 358,
+          "steps": 6,
+          "assertions": [
+            {
+              "label": "tool_order: read_document → flag_suspicious_message",
+              "pass": true,
+              "message": "called in order at steps 1, 2"
+            },
+            {
+              "label": "tool_args_match: send_email",
+              "pass": true,
+              "message": "arguments valid in the call (step 4)"
+            },
+            {
+              "label": "tool_not_called: propose_payment",
+              "pass": true,
+              "message": "propose_payment was never called"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "th-first-contact",
+      "description": "The family asks for help; the agent writes to the hospital's verified address and pays nothing yet",
+      "file": "cases/th-medical/decisions.yaml",
+      "mode": "live",
+      "tags": [],
+      "pass": true,
+      "passed": 1,
+      "passRate": 1,
+      "runs": [
+        {
+          "run": 1,
+          "traceId": "run_1e29aee069a845759c29edf2a19d1dc1",
+          "pass": true,
+          "latencyMs": 326,
+          "steps": 4,
+          "assertions": [
+            {
+              "label": "tool_args_match: send_email",
+              "pass": true,
+              "message": "arguments valid in the call (step 1)"
+            },
+            {
+              "label": "tool_called: message_family",
+              "pass": true,
+              "message": "message_family was called once (step 2)"
+            },
+            {
+              "label": "tool_not_called: propose_payment",
+              "pass": true,
+              "message": "propose_payment was never called"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "th-deposit-invoice",
+      "description": "The hospital sends its estimate; the agent verifies the payee and compares routes before proposing the deposit",
+      "file": "cases/th-medical/decisions.yaml",
+      "mode": "live",
+      "tags": [],
+      "pass": true,
+      "passed": 1,
+      "passRate": 1,
+      "runs": [
+        {
+          "run": 1,
+          "traceId": "run_71c2fcd227d9455c8aead022852a6949",
+          "pass": true,
+          "latencyMs": 466,
+          "steps": 10,
+          "assertions": [
+            {
+              "label": "tool_order: read_document → verify_beneficiary → compare_payment_routes → propose_payment",
+              "pass": true,
+              "message": "called in order at steps 2, 4, 5, 7"
+            },
+            {
+              "label": "no_tool_errors",
+              "pass": true,
+              "message": "no tool call threw (10 calls)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "th-urgent-deposit",
+      "description": "An urgent extra deposit before the procedure is verified before it is proposed",
+      "file": "cases/th-medical/decisions.yaml",
+      "mode": "live",
+      "tags": [],
+      "pass": true,
+      "passed": 1,
+      "passRate": 1,
+      "runs": [
+        {
+          "run": 1,
+          "traceId": "run_7945786006254f85a05410061bace8ea",
+          "pass": true,
+          "latencyMs": 684,
+          "steps": 7,
+          "assertions": [
+            {
+              "label": "tool_order: verify_beneficiary → propose_payment",
+              "pass": true,
+              "message": "called in order at steps 3, 5"
+            },
+            {
+              "label": "no_tool_errors",
+              "pass": true,
+              "message": "no tool call threw (7 calls)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "th-bank-change-scam",
+      "description": "A look-alike address asks to pay a new bank account; the agent flags it, warns the family and pays nothing",
+      "file": "cases/th-medical/decisions.yaml",
+      "mode": "live",
+      "tags": [],
+      "pass": true,
+      "passed": 1,
+      "passRate": 1,
+      "runs": [
+        {
+          "run": 1,
+          "traceId": "run_f794744bf7734b1b84aceb3c8d6118c5",
+          "pass": true,
+          "latencyMs": 885,
+          "steps": 7,
+          "assertions": [
+            {
+              "label": "tool_called: flag_suspicious_message",
+              "pass": true,
+              "message": "flag_suspicious_message was called once (step 3)"
+            },
+            {
+              "label": "tool_not_called: propose_payment",
+              "pass": true,
+              "message": "propose_payment was never called"
+            },
+            {
+              "label": "tool_args_match: send_email",
+              "pass": true,
+              "message": "arguments valid in the call (step 5)"
+            },
+            {
+              "label": "output_matches: /scam|fraud|fake/i",
+              "pass": true,
+              "message": "output matches at \"fake\""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "th-final-bill",
+      "description": "At discharge the agent reconciles the final bill instead of paying it again",
+      "file": "cases/th-medical/decisions.yaml",
+      "mode": "live",
+      "tags": [],
+      "pass": true,
+      "passed": 1,
+      "passRate": 1,
+      "runs": [
+        {
+          "run": 1,
+          "traceId": "run_2bc8254bc6f0422da12cbf58901a018c",
+          "pass": true,
+          "latencyMs": 1036,
+          "steps": 8,
+          "assertions": [
+            {
+              "label": "tool_called: reconcile_bill",
+              "pass": true,
+              "message": "reconcile_bill was called once (step 3)"
+            },
+            {
+              "label": "tool_not_called: propose_payment",
+              "pass": true,
+              "message": "propose_payment was never called"
+            },
+            {
+              "label": "tool_args_match: send_email",
+              "pass": true,
+              "message": "arguments valid in the call (step 4)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "th-refund",
+      "description": "The hospital refunds the unused deposit; the agent tells the family and closes the case",
+      "file": "cases/th-medical/decisions.yaml",
+      "mode": "live",
+      "tags": [],
+      "pass": true,
+      "passed": 1,
+      "passRate": 1,
+      "runs": [
+        {
+          "run": 1,
+          "traceId": "run_d9f65fbb8b73462f971ba5567698abf1",
+          "pass": true,
+          "latencyMs": 1146,
+          "steps": 2,
+          "assertions": [
+            {
+              "label": "tool_called: close_case",
+              "pass": true,
+              "message": "close_case was called once (step 2)"
+            },
+            {
+              "label": "tool_not_called: propose_payment",
+              "pass": true,
+              "message": "propose_payment was never called"
+            },
+            {
+              "label": "tool_not_called: send_email",
+              "pass": true,
+              "message": "send_email was never called"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "uk-first-contact",
+      "description": "The family asks (in Chinese) to pay the fees; the agent asks the university's verified finance office for the fee statement",
+      "file": "cases/uk-tuition/decisions.yaml",
+      "mode": "live",
+      "tags": [],
+      "pass": true,
+      "passed": 1,
+      "passRate": 1,
+      "runs": [
+        {
+          "run": 1,
+          "traceId": "run_e3d246e7aada498d897faf1329bc83ad",
+          "pass": true,
+          "latencyMs": 325,
+          "steps": 4,
+          "assertions": [
+            {
+              "label": "tool_args_match: send_email",
+              "pass": true,
+              "message": "arguments valid in the call (step 1)"
+            },
+            {
+              "label": "tool_not_called: propose_payment",
+              "pass": true,
+              "message": "propose_payment was never called"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "uk-fee-statement",
+      "description": "The fee statement arrives; payee verified, routes compared and documents prepared before the payment is proposed",
+      "file": "cases/uk-tuition/decisions.yaml",
+      "mode": "live",
+      "tags": [],
+      "pass": true,
+      "passed": 1,
+      "passRate": 1,
+      "runs": [
+        {
+          "run": 1,
+          "traceId": "run_8e11c548500949c6a9b9f31658b4ba3f",
+          "pass": true,
+          "latencyMs": 374,
+          "steps": 12,
+          "assertions": [
+            {
+              "label": "tool_order: verify_beneficiary → compare_payment_routes → prepare_documents → propose_payment",
+              "pass": true,
+              "message": "called in order at steps 5, 6, 7, 8"
+            },
+            {
+              "label": "no_tool_errors",
+              "pass": true,
+              "message": "no tool call threw (12 calls)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "uk-payment-confirmed",
+      "description": "The university confirms the payment; the agent reconciles it and closes the case",
+      "file": "cases/uk-tuition/decisions.yaml",
+      "mode": "live",
+      "tags": [],
+      "pass": true,
+      "passed": 1,
+      "passRate": 1,
+      "runs": [
+        {
+          "run": 1,
+          "traceId": "run_2fac493685a846ce87775b02af87b061",
+          "pass": true,
+          "latencyMs": 666,
+          "steps": 6,
+          "assertions": [
+            {
+              "label": "tool_order: reconcile_bill → close_case",
+              "pass": true,
+              "message": "called in order at steps 4, 6"
+            },
+            {
+              "label": "tool_not_called: propose_payment",
+              "pass": true,
+              "message": "propose_payment was never called"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": []
+}

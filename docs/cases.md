@@ -32,6 +32,7 @@ assert:
 | `runs`        | no       | How many times to run the case, 1 to 100. Default 1                                                                              |
 | `description` | no       | Shown in reports                                                                                                                 |
 | `tags`        | no       | Select cases and group reports                                                                                                   |
+| `vars`        | no       | Values the agent gets as `ctx.vars`, e.g. which account, locale or scenario to use                                               |
 
 Case files are strict: a key the format doesn't know, such as a misspelled `asserts:`, is an error rather than being ignored.
 

@@ -1,10 +1,10 @@
 import { access } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
-import { createJiti } from 'jiti';
 import { z } from 'zod';
 import type { RunContext } from './context.js';
 import type { Prices } from './prices.js';
 import type { Message } from './trace.js';
+import { importDefault } from './module.js';
 
 /** The case input the agent gets: the message list, ending with the user's message. */
 export interface AgentInput {
@@ -108,8 +108,6 @@ export interface LoadedConfig {
   file: string;
 }
 
-const jiti = createJiti(import.meta.url, { moduleCache: false, interopDefault: false });
-
 /** Loads a config file, or the first of CONFIG_FILES in `cwd` when none is given. */
 export async function loadConfig(file?: string, cwd = process.cwd()): Promise<LoadedConfig> {
   let path: string | undefined;
@@ -132,7 +130,7 @@ export async function loadConfig(file?: string, cwd = process.cwd()): Promise<Lo
 
   let exported: unknown;
   try {
-    exported = (await jiti.import<{ default?: unknown }>(path)).default;
+    exported = await importDefault(path);
   } catch (err) {
     throw new ConfigError(`cannot load ${path}: ${(err as Error).message}`, { cause: err });
   }

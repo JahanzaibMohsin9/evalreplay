@@ -72,6 +72,7 @@ describe('YAML cases', () => {
         },
         mode: 'replay',
         runs: 5,
+        vars: {},
         assert: [
           { kind: 'tool_called', tool: 'compare_routes' },
           { kind: 'tool_not_called', tool: 'execute_payment' },

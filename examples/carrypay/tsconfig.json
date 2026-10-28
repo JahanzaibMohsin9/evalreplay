@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // CarryPay's own alias, pointing into the copy that `pnpm run fetch` fetches
+    "paths": { "@/*": ["./.carrypay/src/*"] },
+    "noEmit": true
+  },
+  "include": ["*.ts", "cases"]
+}

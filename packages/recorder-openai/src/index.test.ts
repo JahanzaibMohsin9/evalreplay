@@ -351,6 +351,23 @@ describe('responses', () => {
   });
 });
 
+describe('the OpenAI class', () => {
+  it('records every client it creates, each with its own provider', async () => {
+    const proto = OpenAI.Chat.Completions.prototype;
+    const original = proto.create;
+    try {
+      const steps: LlmStep[] = [];
+      recordOpenAI(OpenAI, { onStep: (s) => steps.push(s) });
+      // created after, the way an app creates clients inside its own code
+      await client(undefined, { json: COMPLETION }).chat.completions.create(chat);
+      await client('https://api.deepseek.com', { json: COMPLETION }).chat.completions.create(chat);
+      expect(steps.map((s) => s.provider)).toEqual(['openai', 'deepseek']);
+    } finally {
+      proto.create = original;
+    }
+  });
+});
+
 describe('providerOf', () => {
   it('names the provider from the base URL', () => {
     expect(providerOf(undefined)).toBe('openai');

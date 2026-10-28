@@ -410,6 +410,7 @@ describe('evaluateCase', () => {
     input: { messages: [{ role: 'user', content: 'Pay' }] },
     mode: 'live',
     runs: 1,
+    vars: {},
     file: '/cases/pay.yaml',
     assert: [
       { kind: 'tool_called', tool: 'compare_routes' },

@@ -93,6 +93,7 @@ async function runOnce(config: Config, c: Case, run: number, recorded?: Trace): 
   const ctx = createRunContext({
     caseId: c.id,
     run,
+    vars: structuredClone(c.vars),
     signal: controller.signal,
     steps,
     ...(recorded ? { replay: new ToolReplay(recorded) } : {}),
@@ -152,7 +153,13 @@ async function runOnce(config: Config, c: Case, run: number, recorded?: Trace): 
     output,
     totals,
     ...(error ? { error } : {}),
-    metadata: { tags: c.tags, caseId: c.id, run, mode: c.mode },
+    metadata: {
+      tags: c.tags,
+      caseId: c.id,
+      run,
+      mode: c.mode,
+      ...(Object.keys(c.vars).length ? { vars: structuredClone(c.vars) } : {}),
+    },
   };
 }
 

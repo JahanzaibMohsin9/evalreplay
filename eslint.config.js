@@ -2,7 +2,15 @@ import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['**/dist/**', '**/coverage/**', '**/node_modules/**'] },
+  {
+    ignores: [
+      '**/dist/**',
+      '**/coverage/**',
+      '**/node_modules/**',
+      'examples/*/.carrypay/**',
+      'examples/*/recordings/**',
+    ],
+  },
   js.configs.recommended,
   tseslint.configs.strict,
   {
@@ -13,5 +21,10 @@ export default tseslint.config(
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
       ],
     },
+  },
+  {
+    // plain Node scripts; TypeScript files get their globals from @types/node
+    files: ['**/*.mjs'],
+    languageOptions: { globals: { console: 'readonly', process: 'readonly' } },
   },
 );

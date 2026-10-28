@@ -87,6 +87,10 @@ export const CaseInputSchema = z
       .union([z.string().min(1), z.strictObject({ messages: z.array(MessageSchema).min(1) })])
       .describe('A user message, or the full message list'),
     mode: z.enum(['replay', 'live']).optional(),
+    vars: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .describe('Values the agent gets as ctx.vars, e.g. which account or locale to use'),
     runs: z
       .int()
       .min(1)
@@ -140,6 +144,8 @@ export interface Case {
   /** `replay` when `from_trace` is set, otherwise `live`, unless the file says otherwise. */
   mode: 'replay' | 'live';
   runs: number;
+  /** From the case's `vars`; `{}` when it has none. */
+  vars: Record<string, unknown>;
   assert: Assertion[];
   /** Absolute path of the file the case came from. */
   file: string;
@@ -324,6 +330,7 @@ export async function normalizeCase(
         typeof c.input === 'string' ? { messages: [{ role: 'user', content: c.input }] } : c.input,
       mode: c.mode ?? (c.from_trace === undefined ? 'live' : 'replay'),
       runs: c.runs ?? 1,
+      vars: c.vars ?? {},
       assert: assertions,
       file: ctx.file,
     },

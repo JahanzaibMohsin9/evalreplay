@@ -5,3 +5,6 @@ PLAN.md
 PROGRESS.md
 packages/*/schema
 **/__snapshots__
+**/.evalreplay
+examples/*/.carrypay
+examples/*/recordings
