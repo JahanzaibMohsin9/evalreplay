@@ -5,9 +5,10 @@ import { glob } from 'tinyglobby';
 import { evaluateCase } from './assert.js';
 import type { Case } from './cases.js';
 import { type AgentOutput, type Config, DEFAULTS } from './config.js';
-import { ToolReplay, createRunContext, errorInfo } from './context.js';
+import { ToolReplay, createRunContext, errorInfo, withRun } from './context.js';
 import { readTraceFile } from './jsonl.js';
 import { loadCases } from './load.js';
+import { costOf, priceFor } from './prices.js';
 import {
   type CaseReport,
   REPORT_VERSION,
@@ -104,7 +105,9 @@ async function runOnce(config: Config, c: Case, run: number, recorded?: Trace): 
     });
     // a copy, so an agent that changes its input can't change the case
     const input = structuredClone(c.input);
-    output = toOutput(await Promise.race([(async () => config.agent(input, ctx))(), timeout]));
+    output = toOutput(
+      await Promise.race([withRun(ctx, async () => config.agent(input, ctx)), timeout]),
+    );
   } catch (err) {
     error = errorInfo(err);
   } finally {
@@ -114,6 +117,15 @@ async function runOnce(config: Config, c: Case, run: number, recorded?: Trace): 
   const latencyMs = Math.round(performance.now() - t0);
   // tool calls still running after a timeout keep writing to `steps`; the trace keeps a copy
   const done = steps.map((s) => ({ ...s }));
+  // model calls a recorder couldn't price get the config's price, when it has one
+  for (const s of done) {
+    const price =
+      s.type === 'llm' &&
+      s.costUsd === undefined &&
+      config.prices &&
+      priceFor(config.prices, s.model);
+    if (s.type === 'llm' && price) s.costUsd = costOf(price, s);
+  }
   const totals = computeTotals(done, latencyMs);
   // with no model calls recorded the cost is unknown, not zero
   if (!done.some((s) => s.type === 'llm')) delete totals.costUsd;

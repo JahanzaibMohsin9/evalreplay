@@ -1,0 +1,32 @@
+{
+  "name": "@evalreplay/recorder-anthropic",
+  "version": "0.0.0",
+  "description": "Records every Anthropic SDK call an agent makes into its evalreplay trace, priced at Claude list prices.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@evalreplay/core": "workspace:*"
+  },
+  "peerDependencies": {
+    "@anthropic-ai/sdk": ">=0.100.0"
+  },
+  "devDependencies": {
+    "@anthropic-ai/sdk": "0.133.0"
+  }
+}

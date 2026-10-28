@@ -252,6 +252,34 @@ describe('run failures', () => {
     expect(report.summary).toMatchObject({ runsPassed: 2, costUsd: 0.004 });
   });
 
+  it('prices model calls without a cost from the config, leaving unknown models unknown', async () => {
+    await files({ 'cases/a.yaml': 'id: a\ninput: hi\nassert:\n  - max_steps: 5\n' });
+    const call = (model: string): Step => ({
+      type: 'llm',
+      provider: 'deepseek',
+      model,
+      inputTokens: 2000,
+      cachedInputTokens: 1000,
+      outputTokens: 100,
+      latencyMs: 300,
+    });
+    const { traces } = await run(
+      (_input, ctx) => {
+        ctx.recordStep(call('deepseek-v4-pro'));
+        ctx.recordStep({ ...call('deepseek-v4-pro'), costUsd: 0.5 }); // the recorder's price wins
+        ctx.recordStep(call('mystery-model'));
+        return 'hi';
+      },
+      { prices: { 'deepseek-v4-pro': { input: 0.5, output: 2, cachedInput: 0.05 } } },
+    );
+    expect(traces[0]?.steps.map((s) => (s.type === 'llm' ? s.costUsd : null))).toEqual([
+      expect.closeTo((1000 * 0.5 + 1000 * 0.05 + 100 * 2) / 1e6, 12),
+      0.5,
+      undefined,
+    ]);
+    expect(traces[0]?.totals.costUsd).toBeUndefined();
+  });
+
   it('keeps going past case files that do not load', async () => {
     await files({
       'cases/good.yaml': 'id: good\ninput: hi\nassert:\n  - output_contains: hi\n',

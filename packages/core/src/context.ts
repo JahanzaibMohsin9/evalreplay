@@ -1,6 +1,22 @@
+import { AsyncLocalStorage } from 'node:async_hooks';
 import { performance } from 'node:perf_hooks';
 import { isDeepStrictEqual } from 'node:util';
 import type { ErrorInfo, Step, ToolStep, Trace } from './trace.js';
+
+const current = new AsyncLocalStorage<RunContext>();
+
+/**
+ * The context of the run this code is part of, or undefined outside a run. Recorders use it, so
+ * a client wrapped once at startup records into whichever run makes each call.
+ */
+export function currentRun(): RunContext | undefined {
+  return current.getStore();
+}
+
+/** Calls `fn` with `ctx` as the current run. */
+export function withRun<R>(ctx: RunContext, fn: () => R): R {
+  return current.run(ctx, fn);
+}
 
 /** Any function: tools take whatever arguments the agent passes. */
 export type ToolFn = (...args: never[]) => unknown;
@@ -47,9 +63,9 @@ function jsonCopy(value: unknown): unknown {
 
 export function errorInfo(err: unknown): ErrorInfo {
   if (err instanceof Error) {
-    return err.name && err.name !== 'Error'
-      ? { message: err.message, type: err.name }
-      : { message: err.message };
+    // SDK errors often keep the name "Error"; their class says more (RateLimitError)
+    const type = [err.name, err.constructor.name].find((n) => n && n !== 'Error');
+    return type ? { message: err.message, type } : { message: err.message };
   }
   return { message: String(err) };
 }

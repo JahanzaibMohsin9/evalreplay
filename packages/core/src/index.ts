@@ -73,7 +73,8 @@ export {
   type Config,
   type LoadedConfig,
 } from './config.js';
-export { ReplayMissError, type RunContext, type ToolFn } from './context.js';
+export { ReplayMissError, currentRun, errorInfo, type RunContext, type ToolFn } from './context.js';
+export { costOf, priceFor, type ModelPrice, type Prices } from './prices.js';
 export { TimeoutError, runCases, type RunOptions, type RunOutcome } from './run.js';
 export {
   REPORT_VERSION,
@@ -85,3 +86,11 @@ export {
   type RunReport,
   type WrittenReport,
 } from './report.js';
+export {
+  msSince,
+  observeModelCall,
+  stepSink,
+  wrapMethod,
+  type CallHooks,
+  type StreamHooks,
+} from './recording.js';

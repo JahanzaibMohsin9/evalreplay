@@ -113,7 +113,7 @@
                 "type": "integer",
                 "minimum": 0,
                 "maximum": 9007199254740991,
-                "description": "gen_ai.usage.input_tokens"
+                "description": "gen_ai.usage.input_tokens, including cached input tokens"
               },
               "outputTokens": {
                 "type": "integer",
@@ -123,6 +123,12 @@
               },
               "cachedInputTokens": {
                 "description": "Input tokens served from the provider cache",
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "cacheWriteInputTokens": {
+                "description": "Input tokens written to the provider cache, which some providers charge extra for",
                 "type": "integer",
                 "minimum": 0,
                 "maximum": 9007199254740991
@@ -139,6 +145,23 @@
               "finishReason": {
                 "description": "gen_ai.response.finish_reasons[0]",
                 "type": "string"
+              },
+              "error": {
+                "description": "Set when the call failed, e.g. a rate limit",
+                "type": "object",
+                "properties": {
+                  "message": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "description": "Error class or code, e.g. \"TimeoutError\"",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "message"
+                ],
+                "additionalProperties": {}
               },
               "output": {
                 "description": "What the model returned in this call",

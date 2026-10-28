@@ -20,16 +20,17 @@ export default defineConfig({
 
 `agent` gets the case input (`{ messages }`) and a run context, and returns the answer: a string, `{ text, structured }`, or a value that becomes the structured output.
 
-| Field         | Default                         | Meaning                                               |
-| ------------- | ------------------------------- | ----------------------------------------------------- |
-| `cases`       |                                 | Glob patterns for case files                          |
-| `agent`       |                                 | The function the runner calls                         |
-| `traces`      | `.evalreplay/traces/**/*.jsonl` | Where the traces named by `from_trace` are            |
-| `concurrency` | `4`                             | Runs at the same time                                 |
-| `timeoutMs`   | `120000`                        | A run that takes longer fails with a `TimeoutError`   |
-| `outDir`      | `.evalreplay/report`            | Where the report and the runs' traces are written     |
-| `name`        | `agent`                         | Agent name written into each trace                    |
-| `version`     |                                 | Agent version written into each trace, e.g. a git SHA |
+| Field         | Default                         | Meaning                                                                                       |
+| ------------- | ------------------------------- | --------------------------------------------------------------------------------------------- |
+| `cases`       |                                 | Glob patterns for case files                                                                  |
+| `agent`       |                                 | The function the runner calls                                                                 |
+| `traces`      | `.evalreplay/traces/**/*.jsonl` | Where the traces named by `from_trace` are                                                    |
+| `concurrency` | `4`                             | Runs at the same time                                                                         |
+| `timeoutMs`   | `120000`                        | A run that takes longer fails with a `TimeoutError`                                           |
+| `outDir`      | `.evalreplay/report`            | Where the report and the runs' traces are written                                             |
+| `name`        | `agent`                         | Agent name written into each trace                                                            |
+| `version`     |                                 | Agent version written into each trace, e.g. a git SHA                                         |
+| `prices`      |                                 | USD per million tokens by model id, for model calls a [recorder](recorders.md) couldn't price |
 
 Paths in the config are relative to the config file. A config file with an unknown key, such as a misspelled `concurency`, is an error.
 
@@ -86,4 +87,4 @@ A run fails when any assertion fails, or when the agent throws or times out. A c
 **1 of 2 cases passed** · 6 of 8 runs passed (75%) · cost $0.031 · 14.2 s
 ```
 
-Cost is only known when every model call has a price. Until a recorder records your agent's model calls, the cost is reported as unknown and `max_cost_usd` fails, rather than counting the runs as free.
+Cost is only known when every model call has a price. Until a [recorder](recorders.md) records your agent's model calls, the cost is reported as unknown and `max_cost_usd` fails, rather than counting the runs as free.
