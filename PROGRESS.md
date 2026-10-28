@@ -22,8 +22,9 @@ Recorded in PLAN.md section 8: the evalreplay name, LiveKit instead of Mastra, t
 
 - **Phase 1.2 case format.** `packages/core/src/cases.ts` (case schema, assertion specs, `defineCase`, normalization) and `load.ts` (`loadCases` / `loadCaseFile` for YAML and `*.case.ts`, errors with file and line, duplicate ids, patterns with no match). Documented in `docs/cases.md`. CI badge in the README. Branch `case-format`.
 
-- **Phase 1.3 assertions.** `packages/core/src/assert.ts`: `evaluateCase`, `evaluateAssertions` and `evaluateAssertion` check every assertion from PLAN.md 3.3 except `judge` against a trace, with a message per assertion and the index of the step that broke it. `src/schema.ts` compiles JSON Schemas with Ajv; the loader now rejects a schema that doesn't compile. Merged #1; this is on branch `assertions`.
+- **Phase 1.3 assertions.** `packages/core/src/assert.ts`: `evaluateCase`, `evaluateAssertions` and `evaluateAssertion` check every assertion from PLAN.md 3.3 except `judge` against a trace, with a message per assertion and the index of the step that broke it. `src/schema.ts` compiles JSON Schemas with Ajv; the loader now rejects a schema that doesn't compile. Merged in #2.
+- **Phase 1.4 runner.** `packages/core`: `defineConfig` / `loadConfig` (`src/config.ts`), the run context with tool recording and replay from `from_trace` (`src/context.ts`), `runCases` with concurrency, timeouts and a pass rate per case (`src/run.ts`), and `report.json`, `report.md` and `traces.jsonl` (`src/report.ts`). Documented in `docs/running.md`. Branch `runner`.
 
 ### Next
 
-Phase 1.4 in `packages/core`: the runner. Call the user's agent for each case `runs` times (with a concurrency limit), mock tools with the `from_trace` results in replay mode, record a trace per run, check it with `evaluateCase`, and write `report.json` and `report.md`.
+PLAN.md phase 1 step 3: `packages/recorder-openai` and `packages/recorder-anthropic`, which wrap each SDK client and add every model call (tokens, cost, latency, tool calls) to the run through `ctx.recordStep`. Then the CLI (`evalreplay run`).

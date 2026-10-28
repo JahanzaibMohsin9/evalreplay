@@ -61,3 +61,27 @@ export {
   serializeTraces,
   type ParsedTraces,
 } from './jsonl.js';
+export {
+  CONFIG_FILES,
+  ConfigError,
+  defineConfig,
+  loadConfig,
+  validateConfig,
+  type AgentFn,
+  type AgentInput,
+  type AgentOutput,
+  type Config,
+  type LoadedConfig,
+} from './config.js';
+export { ReplayMissError, type RunContext, type ToolFn } from './context.js';
+export { TimeoutError, runCases, type RunOptions, type RunOutcome } from './run.js';
+export {
+  REPORT_VERSION,
+  renderMarkdown,
+  writeReport,
+  type AssertionReport,
+  type CaseReport,
+  type Report,
+  type RunReport,
+  type WrittenReport,
+} from './report.js';

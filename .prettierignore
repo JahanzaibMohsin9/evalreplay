@@ -4,3 +4,4 @@ pnpm-lock.yaml
 PLAN.md
 PROGRESS.md
 packages/*/schema
+**/__snapshots__
