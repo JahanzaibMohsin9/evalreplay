@@ -22,6 +22,8 @@ Recorded in PLAN.md section 8: the evalreplay name, LiveKit instead of Mastra, t
 
 - **Phase 1.2 case format.** `packages/core/src/cases.ts` (case schema, assertion specs, `defineCase`, normalization) and `load.ts` (`loadCases` / `loadCaseFile` for YAML and `*.case.ts`, errors with file and line, duplicate ids, patterns with no match). Documented in `docs/cases.md`. CI badge in the README. Branch `case-format`.
 
+- **Phase 1.3 assertions.** `packages/core/src/assert.ts`: `evaluateCase`, `evaluateAssertions` and `evaluateAssertion` check every assertion from PLAN.md 3.3 except `judge` against a trace, with a message per assertion and the index of the step that broke it. `src/schema.ts` compiles JSON Schemas with Ajv; the loader now rejects a schema that doesn't compile. Merged #1; this is on branch `assertions`.
+
 ### Next
 
-Phase 1.3 in `packages/core`: evaluate the assertions against a trace (`tool_args_match` and `output_schema` need a JSON Schema validator, e.g. Ajv), with a result per assertion that names the step that failed.
+Phase 1.4 in `packages/core`: the runner. Call the user's agent for each case `runs` times (with a concurrency limit), mock tools with the `from_trace` results in replay mode, record a trace per run, check it with `evaluateCase`, and write `report.json` and `report.md`.

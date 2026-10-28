@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { compileSchema } from './schema.js';
 import { type Message, MessageSchema, type Trace } from './trace.js';
 
 // A case is an input plus assertions, written in YAML (`*.yaml`) or TypeScript (`*.case.ts`).
@@ -221,13 +222,21 @@ async function normalizeAssertion(
   const parsed = spec.safeParse(value);
   if (!parsed.success) return { issues: zodIssues(parsed.error, at) };
 
+  // compiled here so a broken schema is reported when cases load, not when they run
   const schemaOf = async (ref: string | JsonSchema, refPath: (string | number)[]) => {
-    if (typeof ref !== 'string') return { schema: ref };
+    let schema: JsonSchema;
     try {
-      return { schema: await ctx.readSchema(ref) };
+      schema = typeof ref === 'string' ? await ctx.readSchema(ref) : ref;
     } catch (err) {
       return { issue: { path: refPath, message: (err as Error).message } };
     }
+    try {
+      compileSchema(schema);
+    } catch (err) {
+      const message = `invalid JSON Schema${typeof ref === 'string' ? ` in ${ref}` : ''}: ${(err as Error).message}`;
+      return { issue: { path: refPath, message } };
+    }
+    return { schema };
   };
 
   const v = parsed.data as never;
