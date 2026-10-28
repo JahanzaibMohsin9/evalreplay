@@ -20,7 +20,7 @@ Runs your cases on every pull request, compares them with the baseline on the ba
 
 ## Setup
 
-1. Install evalreplay in the project (`pnpm add -D evalreplay`) and add `evalreplay.config.ts` and some cases. (evalreplay isn't on npm yet: 0.1.0 is next.)
+1. Install evalreplay in the project (`pnpm add -D evalreplay`) and add `evalreplay.config.ts` and some cases.
 2. On the main branch, run the cases, keep the report as the baseline and commit it:
 
    ```bash
@@ -47,7 +47,7 @@ Runs your cases on every pull request, compares them with the baseline on the ba
          - uses: actions/setup-node@v4
            with: { node-version: 24 }
          - run: npm ci
-         - uses: JahanzaibMohsin9/evalreplay@main
+         - uses: JahanzaibMohsin9/evalreplay@v0
            env:
              # the agent's model runs for real, in replay mode too (only the tools are mocked)
              OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

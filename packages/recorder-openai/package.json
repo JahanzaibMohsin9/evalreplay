@@ -1,8 +1,27 @@
 {
   "name": "@evalreplay/recorder-openai",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Records every OpenAI SDK call an agent makes (Chat Completions and Responses, including OpenAI-compatible providers) into its evalreplay trace.",
+  "keywords": [
+    "ai",
+    "agents",
+    "llm",
+    "evals",
+    "openai",
+    "deepseek",
+    "tracing"
+  ],
+  "homepage": "https://github.com/JahanzaibMohsin9/evalreplay#readme",
+  "bugs": {
+    "url": "https://github.com/JahanzaibMohsin9/evalreplay/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JahanzaibMohsin9/evalreplay.git",
+    "directory": "packages/recorder-openai"
+  },
   "license": "MIT",
+  "author": "Jahanzeb Mohsin",
   "type": "module",
   "exports": {
     ".": {
@@ -16,17 +35,19 @@
   "engines": {
     "node": ">=22"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
-  "dependencies": {
-    "@evalreplay/core": "workspace:*"
-  },
   "peerDependencies": {
+    "@evalreplay/core": "workspace:^",
     "openai": ">=6.0.0"
   },
   "devDependencies": {
+    "@evalreplay/core": "workspace:*",
     "openai": "7.33.0"
   }
 }

@@ -1,8 +1,27 @@
 {
   "name": "@evalreplay/core",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "evalreplay trace format, test cases, assertions and runner.",
+  "keywords": [
+    "ai",
+    "agents",
+    "llm",
+    "evals",
+    "testing",
+    "traces",
+    "ci"
+  ],
+  "homepage": "https://github.com/JahanzaibMohsin9/evalreplay#readme",
+  "bugs": {
+    "url": "https://github.com/JahanzaibMohsin9/evalreplay/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JahanzaibMohsin9/evalreplay.git",
+    "directory": "packages/core"
+  },
   "license": "MIT",
+  "author": "Jahanzeb Mohsin",
   "type": "module",
   "exports": {
     ".": {
@@ -17,6 +36,9 @@
   ],
   "engines": {
     "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",

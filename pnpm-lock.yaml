@@ -218,7 +218,7 @@ importers:
   packages/cli:
     dependencies:
       '@evalreplay/core':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../core
       yaml:
         specifier: 2.9.1
@@ -252,21 +252,19 @@ importers:
         version: link:../core
 
   packages/recorder-anthropic:
-    dependencies:
-      '@evalreplay/core':
-        specifier: workspace:*
-        version: link:../core
     devDependencies:
       '@anthropic-ai/sdk':
         specifier: 0.133.0
         version: 0.133.0(zod@4.6.7)
-
-  packages/recorder-openai:
-    dependencies:
       '@evalreplay/core':
         specifier: workspace:*
         version: link:../core
+
+  packages/recorder-openai:
     devDependencies:
+      '@evalreplay/core':
+        specifier: workspace:*
+        version: link:../core
       openai:
         specifier: 7.33.0
         version: 7.33.0(ws@8.21.0)(zod@4.6.7)

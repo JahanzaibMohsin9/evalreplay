@@ -3,7 +3,11 @@ import { performance } from 'node:perf_hooks';
 import { isDeepStrictEqual } from 'node:util';
 import type { ErrorInfo, Step, ToolStep, Trace } from './trace.js';
 
-const current = new AsyncLocalStorage<RunContext>();
+// on globalThis, so two copies of this package in one project (say the CLI's and a recorder's)
+// still agree on the current run
+const STORE = Symbol.for('evalreplay.currentRun');
+const current = ((globalThis as { [STORE]?: AsyncLocalStorage<RunContext> })[STORE] ??=
+  new AsyncLocalStorage<RunContext>());
 
 /**
  * The context of the run this code is part of, or undefined outside a run. Recorders use it, so

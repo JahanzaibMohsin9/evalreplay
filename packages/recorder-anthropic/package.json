@@ -1,8 +1,27 @@
 {
   "name": "@evalreplay/recorder-anthropic",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Records every Anthropic SDK call an agent makes into its evalreplay trace, priced at Claude list prices.",
+  "keywords": [
+    "ai",
+    "agents",
+    "llm",
+    "evals",
+    "anthropic",
+    "claude",
+    "tracing"
+  ],
+  "homepage": "https://github.com/JahanzaibMohsin9/evalreplay#readme",
+  "bugs": {
+    "url": "https://github.com/JahanzaibMohsin9/evalreplay/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JahanzaibMohsin9/evalreplay.git",
+    "directory": "packages/recorder-anthropic"
+  },
   "license": "MIT",
+  "author": "Jahanzeb Mohsin",
   "type": "module",
   "exports": {
     ".": {
@@ -16,17 +35,19 @@
   "engines": {
     "node": ">=22"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
-  "dependencies": {
-    "@evalreplay/core": "workspace:*"
-  },
   "peerDependencies": {
+    "@evalreplay/core": "workspace:^",
     "@anthropic-ai/sdk": ">=0.100.0"
   },
   "devDependencies": {
+    "@evalreplay/core": "workspace:*",
     "@anthropic-ai/sdk": "0.133.0"
   }
 }
