@@ -1,0 +1,225 @@
+# Project plan: agent traces → tests in CI
+
+Name: **evalreplay** (npm `evalreplay` and scope `@evalreplay`, PyPI `evalreplay` and GitHub org `evalreplay` were all free on 28 Oct 2026; the first working name, traceproof, lost its npm scope and GitHub org to others). The local folder is still `D:\Projects\traceproof`.
+
+## 1. What we are building
+
+An open-source tool that turns what an AI agent actually did into repeatable tests that run in CI.
+
+1. **Record** an agent run as a trace: model calls, tool calls with arguments and results, tokens, cost, latency, final output.
+2. **Turn traces into test cases** with assertions (right tool called, valid arguments, cost under a limit, and so on).
+3. **Re-run the cases on every pull request** and post a comment with pass rate, cost change and anything that got worse versus the baseline.
+
+### Why this project
+
+- Job ads ask for exactly this: Apify ("evals that turn real production traces into tests, catch regressions in CI"), Mastra (trace tooling, evals, tuning agents), n8n (benchmarks, quality signals, PR evidence), Supabase (agent execution, logging).
+- It has real users (other developers), so stars, downloads and issues become proof.
+- It fills every gap from the job search: GitHub Actions / CI, open source, AWS, Python agent frameworks, monorepo experience.
+
+### Rules for the build
+
+- TypeScript first (Node 22+, strict mode; Node 20 reached end of life in April 2026). Python package in phase 3.
+- Every package has tests (Vitest; pytest for Python). CI must stay green.
+- Keep the trace format stable and documented; everything else can change.
+- No secrets in the repo. Use `.env.example` and GitHub Actions secrets.
+- Small commits with clear messages. One feature per pull request, even when working alone.
+
+## 2. Repository layout
+
+```
+evalreplay/
+├── PLAN.md                     # this file
+├── PROGRESS.md                 # running log: what was done, what's next (update every session)
+├── README.md
+├── package.json                # pnpm workspaces root
+├── pnpm-workspace.yaml
+├── tsconfig.base.json
+├── .github/
+│   └── workflows/
+│       ├── ci.yml              # lint, typecheck, test on every push/PR
+│       └── release.yml         # publish to npm on tag
+├── packages/
+│   ├── core/                   # trace schema, case format, assertions, runner, reports
+│   ├── cli/                    # `evalreplay` command
+│   ├── recorder-openai/        # wraps the OpenAI SDK to record traces
+│   ├── recorder-anthropic/     # wraps the Anthropic SDK (CarryPay's agent uses both)
+│   ├── recorder-ai-sdk/        # Vercel AI SDK middleware recorder
+│   ├── mcp/                    # test any MCP server's tools
+│   └── github-action/          # GitHub Action that runs cases and comments on PRs
+├── python/
+│   └── evalreplay/             # pytest plugin + LangGraph recorder (phase 3)
+├── apps/
+│   └── dashboard/              # Next.js results dashboard (phase 4)
+├── infra/                      # AWS CDK (or Terraform) for the dashboard (phase 4)
+├── examples/
+│   ├── carrypay/               # real cases from CarryPay's 45 eval runs
+│   └── mastra/                 # example with a Mastra agent (phase 3)
+└── docs/
+    ├── trace-format.md
+    ├── assertions.md
+    └── github-action.md
+```
+
+## 3. Core design
+
+### 3.1 Trace format (JSONL, one run per line)
+
+Align field names with the OpenTelemetry GenAI semantic conventions (`gen_ai.*`) so OTel traces can be imported later.
+
+```jsonc
+{
+  "id": "run_01H...",
+  "startedAt": "2026-10-24T10:00:00Z",
+  "agent": { "name": "carrypay", "version": "git-sha" },
+  "input": { "messages": [ ... ] },
+  "steps": [
+    { "type": "llm", "model": "gpt-4.1-mini", "provider": "openai",
+      "inputTokens": 812, "outputTokens": 140, "costUsd": 0.0012, "latencyMs": 900 },
+    { "type": "tool", "name": "compare_routes",
+      "args": { "amount": 1200, "currency": "EUR" },
+      "result": { ... }, "error": null, "latencyMs": 340 }
+  ],
+  "output": { "text": "...", "structured": { ... } },
+  "totals": { "costUsd": 0.08, "latencyMs": 5400, "steps": 7 },
+  "metadata": { "tags": ["payments"] }
+}
+```
+
+Define it once with **zod** in `packages/core/src/trace.ts` and export the TypeScript types and a JSON Schema.
+
+### 3.2 Test case format
+
+A case = an input + assertions, optionally created from a recorded trace (`evalreplay capture <trace-id>`).
+
+```yaml
+# cases/payments/pay-tuition.yaml
+id: pay-tuition-eur
+from_trace: run_01H...          # optional: recorded tool results used as mocks
+input:
+  messages:
+    - role: user
+      content: "Pay my son's tuition invoice to TU Munich"
+mode: replay                    # replay = mock tools with recorded results; live = call real tools
+runs: 5                         # agents are non-deterministic: report a pass rate
+assert:
+  - tool_called: compare_routes
+  - tool_not_called: execute_payment          # must wait for approval
+  - tool_args_match: { tool: compare_routes, schema: ./schemas/compare_routes.json }
+  - max_cost_usd: 0.25
+  - max_steps: 12
+  - output_contains: "approval"
+  - judge: { rubric: "Explains fees clearly", min_score: 4 }   # optional LLM judge
+```
+
+Cases can also be written in TypeScript (`*.case.ts`) for custom assertion functions.
+
+### 3.3 Assertions (packages/core/src/assertions/)
+
+Start with: `tool_called`, `tool_not_called`, `tool_order`, `tool_args_match` (JSON Schema / zod), `output_contains`, `output_matches` (regex), `output_schema`, `max_cost_usd`, `max_latency_ms`, `max_steps`, `no_tool_errors`, `custom` (function). Add `judge` (LLM-as-judge, pluggable model) later and mark it as non-deterministic in reports.
+
+### 3.4 Runner
+
+- Loads cases, runs each `runs` times (with a concurrency limit), records a new trace per run.
+- Replay mode: the agent runs for real, but tool calls return the recorded results (deterministic tools, real model).
+- Live mode: real model and real tools (for nightly runs, not every PR).
+- Output: `report.json` (machine) and `report.md` (human): pass rate per case, cost and latency totals, failures with the exact assertion and step that failed.
+- Baseline: `evalreplay baseline save` writes `.evalreplay/baseline.json`; `evalreplay run --compare baseline` reports regressions (pass rate dropped, cost up more than X%).
+
+### 3.5 How users connect their agent
+
+Users export one function the runner can call:
+
+```ts
+// evalreplay.config.ts
+import { defineConfig } from "@evalreplay/core";
+import { runAgent } from "./src/agent";
+
+export default defineConfig({
+  cases: "cases/**/*.yaml",
+  agent: async (input, ctx) => runAgent(input, { tools: ctx.wrapTools(myTools) }),
+});
+```
+
+`ctx.wrapTools` handles recording and, in replay mode, mocking.
+
+## 4. Phases
+
+Assume about 30 hours a week. Each phase ends with a tagged release and an entry in PROGRESS.md.
+
+### Phase 0: quick wins in existing repos (2–3 days, do first)
+
+1. **CarryPay CI:** add `.github/workflows/ci.yml` that installs, typechecks, runs tests on every push and pull request, and runs a small eval subset. Add the CI badge to the README.
+   - Done when: badge is green on main; a PR shows the checks.
+2. **Pick an open-source issue:** find a "good first issue" in Mastra or LiveKit `agents-js`. Comment to claim it. (Work on it in parallel with phase 1; aim for a merged PR by 14 November.)
+3. **Pin repos on GitHub:** CarryPay, ScopeSignal, and later evalreplay, each with a clear README (what, why, demo, how to run, how it's tested).
+
+### Phase 1: core + CLI (week 1)
+
+1. Monorepo setup: pnpm workspaces, `tsconfig.base.json`, ESLint, Prettier, Vitest, `ci.yml`.
+2. `packages/core`: trace schema (zod), case loader (YAML + TS), assertions from 3.3 except `judge`, runner with replay mode, `report.json` and `report.md`.
+3. `packages/recorder-openai` and `packages/recorder-anthropic`: wrap each client so every call and tool call is recorded to a trace. CarryPay's agent loop calls both SDKs, so the example needs both.
+4. `packages/cli`: `evalreplay run`, `evalreplay capture <trace-id>`, `evalreplay baseline save`, `evalreplay run --compare baseline`.
+5. `examples/carrypay`: convert at least 10 of CarryPay's 45 eval cases.
+   - Done when: `pnpm evalreplay run` in `examples/carrypay` prints a pass rate, and a deliberately broken tool makes a case fail with a clear message.
+
+### Phase 2: GitHub Action (week 2)
+
+1. `packages/github-action`: runs the CLI, compares with the baseline from the main branch, and posts or updates one PR comment (pass rate, cost change, regressions, link to full report).
+2. Exit code fails the check when pass rate drops below a threshold set in config.
+3. Use it in CarryPay's CI (replay mode on PRs, live mode nightly with a cost cap).
+4. Publish `0.1.0` to npm and the Action to the GitHub Marketplace.
+   - Done when: a PR to CarryPay that breaks a tool gets a red check and a clear comment.
+
+### Phase 3: integrations (week 3)
+
+1. `packages/recorder-ai-sdk`: Vercel AI SDK middleware recorder.
+2. Mastra example in `examples/mastra` (and, if it fits, a small docs or example PR to Mastra itself = open-source contribution).
+3. `packages/mcp`: `evalreplay mcp --server "<command>"` lists the server's tools, runs cases that call them, and validates input and output schemas.
+4. `python/evalreplay`: same trace format; LangGraph callback recorder; pytest plugin (`pytest --evalreplay`). Publish to PyPI.
+   - Done when: the same YAML case format works from TypeScript and Python.
+
+### Phase 4: dashboard on AWS + launch (week 4)
+
+1. `apps/dashboard`: Next.js app that shows runs over time, pass rate per case, cost trends, and trace detail (step by step).
+2. Upload from CI: `evalreplay run --upload` with an API key.
+3. `infra/`: AWS CDK (or Terraform):
+   - API: Lambda (or a small container on ECS Fargate)
+   - Storage: S3 for raw traces, Postgres (RDS) or DynamoDB for run summaries
+   - Keep it inside the free tier where possible; set a billing alarm on day one.
+4. Docs site (README + `docs/`), a 2-minute screen-recorded demo (no face needed).
+5. Launch: Show HN, r/LocalLLaMA or r/MachineLearning (follow each subreddit's rules), X/LinkedIn post, and the Mastra/LangChain community channels.
+   - Done when: public repo, npm + PyPI packages, Marketplace Action, live dashboard URL, and at least one person outside you has run it.
+
+## 5. After launch: how this goes on the CV
+
+- New top project line: what it does, packages published, GitHub Action, stars/downloads, AWS deployment.
+- Merged PRs to Mastra / LiveKit / others listed under "Open source".
+- Skills: add GitHub Actions, AWS (Lambda, S3, RDS/DynamoDB, CDK), monorepos, pytest plugins.
+
+## 6. Working with Claude Code
+
+- Start each session with: "Read PLAN.md and PROGRESS.md. Continue with the next unfinished task."
+- End each session by updating PROGRESS.md: done, decisions made, next step.
+- One phase task per session; run tests before every commit.
+- When a design question comes up that this plan doesn't answer, write the decision into PLAN.md so it stays consistent.
+
+## 7. Checklist
+
+- [x] Phase 0.1 CarryPay CI badge green
+- [x] Phase 0.2 Open-source issue claimed (livekit/agents-js#1983, PR #2884 open)
+- [ ] Phase 0.3 Pinned repos with clean READMEs
+- [ ] Phase 1 Core + CLI, CarryPay example passing
+- [ ] Phase 2 GitHub Action, v0.1.0 on npm and Marketplace
+- [ ] Phase 3 AI SDK recorder, Mastra example, MCP mode, Python package
+- [ ] Phase 4 Dashboard on AWS, docs, demo, launch
+- [ ] First merged open-source PR (target: 14 Nov 2026)
+
+## 8. Decisions
+
+Design questions this plan didn't answer, decided as they came up.
+
+- **28 Oct 2026, name:** renamed traceproof → evalreplay (see the top of this file).
+- **28 Oct 2026, open source target:** Mastra disabled pull requests from outside contributors (their CONTRIBUTING.md asks for issues instead), so phase 0.2 targets LiveKit `agents-js`, which merges outside PRs within days.
+- **28 Oct 2026, Anthropic recorder:** added `recorder-anthropic` to phase 1, because CarryPay's agent loop calls both the OpenAI and Anthropic SDKs.
+- **28 Oct 2026, toolchain:** Node 22+, pnpm 12, TypeScript 6.0 (typescript-eslint does not support TypeScript 7 yet), zod 4 (its built-in `z.toJSONSchema` generates the JSON Schema), Vitest 5, ESLint 10 flat config, Prettier.
+- **28 Oct 2026, trace format versioning:** every trace line carries `schemaVersion: 1`. Additive optional fields keep the version; renaming or removing a field, or changing its meaning, bumps it, and readers keep accepting older versions.

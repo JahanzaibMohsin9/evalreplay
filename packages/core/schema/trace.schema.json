@@ -1,0 +1,353 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "number",
+      "const": 1
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "startedAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+      "description": "ISO 8601 date-time"
+    },
+    "agent": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "description": "e.g. the git SHA of the agent code",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "additionalProperties": {}
+    },
+    "input": {
+      "type": "object",
+      "properties": {
+        "messages": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "role": {
+                "type": "string",
+                "enum": [
+                  "system",
+                  "user",
+                  "assistant",
+                  "tool"
+                ]
+              },
+              "content": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "array",
+                    "items": {}
+                  }
+                ],
+                "description": "Plain text, or provider-specific content parts"
+              },
+              "name": {
+                "type": "string"
+              },
+              "toolCallId": {
+                "description": "For role \"tool\": the call this message answers",
+                "type": "string"
+              }
+            },
+            "required": [
+              "role",
+              "content"
+            ],
+            "additionalProperties": {},
+            "description": "One chat message"
+          }
+        }
+      },
+      "required": [
+        "messages"
+      ],
+      "additionalProperties": {}
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "const": "llm"
+              },
+              "startedAt": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "description": "ISO 8601 date-time"
+              },
+              "provider": {
+                "type": "string",
+                "description": "gen_ai.provider.name, e.g. \"openai\", \"anthropic\""
+              },
+              "model": {
+                "type": "string",
+                "description": "gen_ai.request.model"
+              },
+              "inputTokens": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991,
+                "description": "gen_ai.usage.input_tokens"
+              },
+              "outputTokens": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991,
+                "description": "gen_ai.usage.output_tokens"
+              },
+              "cachedInputTokens": {
+                "description": "Input tokens served from the provider cache",
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "costUsd": {
+                "description": "Omitted when the price of the model is unknown",
+                "type": "number",
+                "minimum": 0
+              },
+              "latencyMs": {
+                "type": "number",
+                "minimum": 0
+              },
+              "finishReason": {
+                "description": "gen_ai.response.finish_reasons[0]",
+                "type": "string"
+              },
+              "output": {
+                "description": "What the model returned in this call",
+                "type": "object",
+                "properties": {
+                  "text": {
+                    "type": "string"
+                  },
+                  "toolCalls": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "args": {
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {}
+                        }
+                      },
+                      "required": [
+                        "name",
+                        "args"
+                      ],
+                      "additionalProperties": {}
+                    }
+                  }
+                },
+                "additionalProperties": {}
+              }
+            },
+            "required": [
+              "type",
+              "provider",
+              "model",
+              "inputTokens",
+              "outputTokens",
+              "latencyMs"
+            ],
+            "additionalProperties": {},
+            "description": "One model call"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "const": "tool"
+              },
+              "startedAt": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+                "description": "ISO 8601 date-time"
+              },
+              "name": {
+                "type": "string",
+                "description": "gen_ai.tool.name"
+              },
+              "callId": {
+                "description": "gen_ai.tool.call.id: links the call to the model output",
+                "type": "string"
+              },
+              "args": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {}
+              },
+              "result": {
+                "description": "The value the tool returned; replay mode returns it"
+              },
+              "error": {
+                "description": "Set when the tool threw",
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "message": {
+                        "type": "string"
+                      },
+                      "type": {
+                        "description": "Error class or code, e.g. \"TimeoutError\"",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "message"
+                    ],
+                    "additionalProperties": {},
+                    "description": "An error raised by a tool call or by the run itself"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "latencyMs": {
+                "type": "number",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "type",
+              "name",
+              "args",
+              "latencyMs"
+            ],
+            "additionalProperties": {},
+            "description": "One tool call"
+          }
+        ]
+      }
+    },
+    "output": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "structured": {}
+      },
+      "additionalProperties": {}
+    },
+    "totals": {
+      "type": "object",
+      "properties": {
+        "costUsd": {
+          "description": "Omitted when any model call has an unknown cost",
+          "type": "number",
+          "minimum": 0
+        },
+        "latencyMs": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Wall time of the whole run"
+        },
+        "steps": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991,
+          "description": "Must equal steps.length"
+        },
+        "inputTokens": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "outputTokens": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "latencyMs",
+        "steps"
+      ],
+      "additionalProperties": {}
+    },
+    "error": {
+      "description": "Set when the run itself failed",
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        },
+        "type": {
+          "description": "Error class or code, e.g. \"TimeoutError\"",
+          "type": "string"
+        }
+      },
+      "required": [
+        "message"
+      ],
+      "additionalProperties": {}
+    },
+    "metadata": {
+      "description": "Free-form; tags select cases and group reports",
+      "type": "object",
+      "properties": {
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": {}
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "id",
+    "startedAt",
+    "agent",
+    "input",
+    "steps",
+    "output",
+    "totals"
+  ],
+  "additionalProperties": {},
+  "description": "One recorded agent run (one line of a .jsonl trace file)"
+}

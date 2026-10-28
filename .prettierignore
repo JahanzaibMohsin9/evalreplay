@@ -1,0 +1,6 @@
+dist
+coverage
+pnpm-lock.yaml
+PLAN.md
+PROGRESS.md
+packages/*/schema

@@ -1,0 +1,28 @@
+{
+  "name": "@evalreplay/core",
+  "version": "0.0.0",
+  "description": "evalreplay trace format, test cases, assertions and runner.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./trace.schema.json": "./schema/trace.schema.json"
+  },
+  "files": [
+    "dist",
+    "schema"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "zod": "4.6.7"
+  }
+}
