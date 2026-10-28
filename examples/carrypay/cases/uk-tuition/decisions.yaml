@@ -1,0 +1,25 @@
+# China → United Kingdom: a daughter's MSc fees at Kingsgate University, London.
+
+id: uk-first-contact
+description: The family asks (in Chinese) to pay the fees; the agent asks the university's verified finance office for the fee statement
+vars: { scenario: uk-tuition, wakeup: 0 }
+input: 我女儿被伦敦 Kingsgate University 录取了。学校要求开学前付第一期学费和住宿费。麻烦帮我们把学费付给学校。
+assert:
+  - tool_args_match: { tool: send_email, schema: ../../schemas/email-to-kingsgate.json }
+  - tool_not_called: propose_payment
+---
+id: uk-fee-statement
+description: The fee statement arrives; payee verified, routes compared and documents prepared before the payment is proposed
+vars: { scenario: uk-tuition, wakeup: 1 }
+input: 'Email from Kingsgate student finance: fee statement and payment details'
+assert:
+  - tool_order: [verify_beneficiary, compare_payment_routes, prepare_documents, propose_payment]
+  - no_tool_errors: true
+---
+id: uk-payment-confirmed
+description: The university confirms the payment; the agent reconciles it and closes the case
+vars: { scenario: uk-tuition, wakeup: 4 }
+input: "Payment completed, and the university's receipt arrives"
+assert:
+  - tool_order: [reconcile_bill, close_case]
+  - tool_not_called: propose_payment

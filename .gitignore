@@ -6,3 +6,5 @@ coverage/
 .env.*
 !.env.example
 .DS_Store
+# evalreplay output; a saved baseline.json is meant to be committed
+**/.evalreplay/report/

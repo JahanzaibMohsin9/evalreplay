@@ -1,9 +1,9 @@
 import { readFile } from 'node:fs/promises';
 import { dirname, isAbsolute, relative, resolve } from 'node:path';
-import { createJiti } from 'jiti';
 import { glob } from 'tinyglobby';
 import { type Document, LineCounter, parseAllDocuments } from 'yaml';
 import { type Case, type CaseIssue, type JsonSchema, normalizeCase } from './cases.js';
+import { importDefault } from './module.js';
 
 /** A case file that could not be loaded, or one problem in it. */
 export class CaseLoadError extends Error {
@@ -103,13 +103,10 @@ async function loadYamlFile(file: string, shown: string): Promise<LoadedCases> {
   return loaded;
 }
 
-// interopDefault would hand back the whole module as `default` when a file has none
-const jiti = createJiti(import.meta.url, { moduleCache: false, interopDefault: false });
-
 async function loadModuleFile(file: string, shown: string): Promise<LoadedCases> {
   let exported: unknown;
   try {
-    exported = (await jiti.import<{ default?: unknown }>(file)).default;
+    exported = await importDefault(file);
   } catch (err) {
     return {
       cases: [],

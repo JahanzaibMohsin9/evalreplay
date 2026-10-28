@@ -28,6 +28,8 @@ export interface RunContext {
   readonly run: number;
   /** In `replay`, wrapped tools return the results recorded in the case's `from_trace`. */
   readonly mode: 'replay' | 'live';
+  /** The case's `vars`. */
+  readonly vars: Readonly<Record<string, unknown>>;
   /** Aborted when the run times out. */
   readonly signal: AbortSignal;
   /** Wraps every function in a `name → tool` object; see `wrapTool`. */
@@ -115,6 +117,7 @@ export interface ContextOptions {
   caseId: string;
   run: number;
   signal: AbortSignal;
+  vars?: Record<string, unknown>;
   /** Steps are appended here as they start. */
   steps: Step[];
   /** Set in replay mode. */
@@ -188,6 +191,7 @@ export function createRunContext(o: ContextOptions): RunContext {
     caseId: o.caseId,
     run: o.run,
     mode: o.replay ? 'replay' : 'live',
+    vars: o.vars ?? {},
     signal: o.signal,
     callTool,
     wrapTool,

@@ -22,6 +22,15 @@ const deepseek = recordOpenAI(new OpenAI({ baseURL: 'https://api.deepseek.com' }
 
 A recorder returns the same client, with nothing else changed: types, helpers like `.withResponse()`, and errors all stay as they were. Outside an evalreplay run it records nothing, so the wrapped client can stay in your app's code. Wrapping a client twice still records each call once.
 
+When your code creates its clients where you can't wrap them, pass the SDK class to record every client it creates:
+
+```ts
+recordOpenAI(OpenAI);
+recordAnthropic(Anthropic);
+```
+
+The [CarryPay example](../examples/carrypay) does this, since CarryPay's agent creates a client for each wake-up.
+
 ## What gets recorded
 
 | SDK                 | Methods                                                                                                 |

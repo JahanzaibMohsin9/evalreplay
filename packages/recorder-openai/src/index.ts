@@ -201,16 +201,27 @@ const isStream = (v: unknown): boolean =>
  * (a client with a `baseURL`). Inside an evalreplay run each call becomes a model step of the
  * run's trace; outside one, only `onStep` sees it. Returns the same client, so wrap it where you
  * create it: `recordOpenAI(new OpenAI())`.
+ *
+ * Pass the `OpenAI` class instead to record every client it creates, for code that creates its
+ * clients where you can't wrap them: `recordOpenAI(OpenAI)`.
  */
 export function recordOpenAI<C extends object>(client: C, options: RecordOpenAIOptions = {}): C {
   const prices = options.prices ?? {};
-  const c = client as { baseURL?: string; chat?: { completions?: object }; responses?: object };
-  const provider = options.provider ?? providerOf(c.baseURL);
+  type Resources = { chat?: { completions?: object }; responses?: object };
+  type Classes = {
+    Chat?: { Completions?: { prototype: object } };
+    Responses?: { prototype: object };
+  };
+  const prototype = typeof client === 'function';
 
   const record =
     (kind: 'chat' | 'responses') =>
-    (create: (...args: unknown[]) => unknown) =>
+    (create: (...args: unknown[]) => unknown, self: object) =>
     (...args: unknown[]) => {
+      // a resource knows its client, whose base URL names the provider
+      const provider =
+        options.provider ??
+        providerOf((self as { _client?: { baseURL?: string } })._client?.baseURL);
       const model = String((args[0] as { model?: unknown } | undefined)?.model ?? 'unknown');
       const emit = stepSink(options.onStep);
       const base: Base = { type: 'llm', startedAt: new Date().toISOString(), provider };
@@ -270,7 +281,10 @@ export function recordOpenAI<C extends object>(client: C, options: RecordOpenAIO
       return call;
     };
 
-  wrapMethod(c.chat?.completions, 'create', record('chat'));
-  wrapMethod(c.responses, 'create', record('responses'));
+  const [chat, responses] = prototype
+    ? [(client as Classes).Chat?.Completions?.prototype, (client as Classes).Responses?.prototype]
+    : [(client as Resources).chat?.completions, (client as Resources).responses];
+  wrapMethod(chat, 'create', record('chat'), { prototype });
+  wrapMethod(responses, 'create', record('responses'), { prototype });
   return client;
 }

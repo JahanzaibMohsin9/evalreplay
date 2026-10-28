@@ -34,6 +34,8 @@ export default defineConfig({
 
 Paths in the config are relative to the config file. A config file with an unknown key, such as a misspelled `concurency`, is an error.
 
+The config and `.case.ts` files load without a build step, and the path aliases in the nearest `tsconfig.json` (`compilerOptions.paths`, such as `@/*`) resolve, so they can import your code the way your project does.
+
 ## Tools
 
 Wrap the tools your agent calls, so the runner can record them and, in replay mode, return recorded results:
@@ -48,7 +50,7 @@ const output = ctx.callTool(name, args, () => executeTool(name, args));
 
 Each call becomes a tool step in the trace, with its arguments, result or error, and latency. A tool that takes one object records it as the arguments; any other call records `{ arguments: [...] }`. A sync tool stays sync, so wrapping it doesn't change the agent's code. An error a tool throws is recorded and still reaches the agent.
 
-The context also has `caseId`, `run` (from 1), `mode`, a `signal` that aborts when the run times out, and `recordStep(step)`, which recorders use to add model calls.
+The context also has `caseId`, `run` (from 1), `mode`, `vars` (the case's [`vars`](cases.md#fields)), a `signal` that aborts when the run times out, and `recordStep(step)`, which recorders use to add model calls.
 
 ## Replay mode
 

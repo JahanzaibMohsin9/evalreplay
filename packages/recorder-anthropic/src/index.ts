@@ -161,6 +161,9 @@ const isStream = (v: unknown): v is AsyncIterable<StreamEvent> =>
  * `stream()`, `parse()` and the tool runner also go through. Inside an evalreplay run each call
  * becomes a model step of the run's trace; outside one, only `onStep` sees it. Returns the same
  * client, so wrap it where you create it: `recordAnthropic(new Anthropic())`.
+ *
+ * Pass the `Anthropic` class instead to record every client it creates, for code that creates
+ * its clients where you can't wrap them: `recordAnthropic(Anthropic)`.
  */
 export function recordAnthropic<C extends object>(
   client: C,
@@ -168,43 +171,54 @@ export function recordAnthropic<C extends object>(
 ): C {
   const prices: Record<string, ClaudePrice> = { ...CLAUDE_PRICES, ...options.prices };
   const provider = options.provider ?? 'anthropic';
-  const c = client as { messages?: object; beta?: { messages?: object } };
+  type Resources = { messages?: object; beta?: { messages?: object } };
+  type Classes = { Messages?: { prototype: object }; Beta?: { Messages?: { prototype: object } } };
+  const prototype = typeof client === 'function';
+  const targets = prototype
+    ? [(client as Classes).Messages?.prototype, (client as Classes).Beta?.Messages?.prototype]
+    : [(client as Resources).messages, (client as Resources).beta?.messages];
 
-  for (const resource of [c.messages, c.beta?.messages]) {
-    wrapMethod(resource, 'create', (create) => (...args) => {
-      const model = String((args[0] as { model?: unknown } | undefined)?.model ?? 'unknown');
-      const emit = stepSink(options.onStep);
-      const base = { type: 'llm', startedAt: new Date().toISOString(), provider } as const;
-      const t0 = performance.now();
-      const call = create(...args) as PromiseLike<Message | AsyncIterable<StreamEvent>>;
+  for (const resource of targets) {
+    wrapMethod(
+      resource,
+      'create',
+      (create) =>
+        (...args) => {
+          const model = String((args[0] as { model?: unknown } | undefined)?.model ?? 'unknown');
+          const emit = stepSink(options.onStep);
+          const base = { type: 'llm', startedAt: new Date().toISOString(), provider } as const;
+          const t0 = performance.now();
+          const call = create(...args) as PromiseLike<Message | AsyncIterable<StreamEvent>>;
 
-      observeModelCall(call, {
-        done: (msg) => emit(stepFrom(msg as Message, base, msSince(t0), prices)),
-        failed: (err) =>
-          // a failed request isn't billed
-          emit({
-            ...base,
-            model,
-            inputTokens: 0,
-            outputTokens: 0,
-            costUsd: 0,
-            latencyMs: msSince(t0),
-            error: errorInfo(err),
-          }),
-        stream: (value) => {
-          if (!isStream(value)) return undefined;
-          const msg = new StreamedMessage(model);
-          return {
-            event: (e) => msg.add(e as StreamEvent),
-            end: (err) => {
-              const step = stepFrom(msg, base, msSince(t0), prices);
-              emit(err === undefined ? step : { ...step, error: errorInfo(err) });
+          observeModelCall(call, {
+            done: (msg) => emit(stepFrom(msg as Message, base, msSince(t0), prices)),
+            failed: (err) =>
+              // a failed request isn't billed
+              emit({
+                ...base,
+                model,
+                inputTokens: 0,
+                outputTokens: 0,
+                costUsd: 0,
+                latencyMs: msSince(t0),
+                error: errorInfo(err),
+              }),
+            stream: (value) => {
+              if (!isStream(value)) return undefined;
+              const msg = new StreamedMessage(model);
+              return {
+                event: (e) => msg.add(e as StreamEvent),
+                end: (err) => {
+                  const step = stepFrom(msg, base, msSince(t0), prices);
+                  emit(err === undefined ? step : { ...step, error: errorInfo(err) });
+                },
+              };
             },
-          };
+          });
+          return call;
         },
-      });
-      return call;
-    });
+      { prototype },
+    );
   }
   return client;
 }

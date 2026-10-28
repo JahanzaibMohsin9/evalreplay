@@ -1,0 +1,10 @@
+# Pakistan → United Kingdom: an offer letter that came through an education consultant.
+
+id: pk-consultant-offer
+description: The family uploads an offer from a consultant; the agent checks it, flags it and asks the university directly before any payment
+vars: { scenario: pk-admission, wakeup: 0 }
+input: My daughter got an offer from Kingsgate University London for an MSc through an education consultant, who asks us to pay the fees to his account.
+assert:
+  - tool_order: [read_document, flag_suspicious_message]
+  - tool_args_match: { tool: send_email, schema: ../../schemas/email-to-kingsgate.json }
+  - tool_not_called: propose_payment

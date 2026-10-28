@@ -132,20 +132,29 @@ export function observeModelCall<T>(call: PromiseLike<T>, hooks: CallHooks<T>): 
 
 const WRAPPED = Symbol.for('evalreplay.recorder.wrapped');
 
+type Method = (...args: unknown[]) => unknown;
+
 /**
- * Replaces `target[name]` with `wrap(original)`, once: wrapping a client twice records each
- * call once. Returns false when the method is missing.
+ * Replaces `target[name]` with `wrap(original, self)`, once: wrapping a client twice records each
+ * call once. `self` is the object the method is called on. With `prototype`, `target` is a class
+ * prototype and every instance's calls go through the wrapper. Returns false when the method is
+ * missing.
  */
 export function wrapMethod(
   target: object | undefined,
   name: string,
-  wrap: (original: (...args: unknown[]) => unknown) => (...args: unknown[]) => unknown,
+  wrap: (original: Method, self: object) => Method,
+  options: { prototype?: boolean } = {},
 ): boolean {
   const t = target as Record<string, unknown> | undefined;
   const original = t?.[name];
   if (typeof original !== 'function' || !t) return false;
   if ((original as { [WRAPPED]?: true })[WRAPPED]) return true;
-  const wrapped = wrap(original.bind(t) as (...args: unknown[]) => unknown);
+  const wrapped: Method = options.prototype
+    ? function (this: object, ...args: unknown[]) {
+        return wrap((original as Method).bind(this), this)(...args);
+      }
+    : wrap(original.bind(t) as Method, t);
   Object.defineProperty(wrapped, WRAPPED, { value: true });
   t[name] = wrapped;
   return true;

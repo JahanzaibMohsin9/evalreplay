@@ -1,0 +1,5 @@
+{
+  "type": "object",
+  "required": ["to"],
+  "properties": { "to": { "const": "student.finance@kingsgate.ac.uk" } }
+}

@@ -235,6 +235,25 @@ describe('messages.create', () => {
   });
 });
 
+describe('the Anthropic class', () => {
+  it('records every client it creates', async () => {
+    const protos = [Anthropic.Messages.prototype, Anthropic.Beta.Messages.prototype];
+    const originals = protos.map((p) => p.create);
+    try {
+      const steps: LlmStep[] = [];
+      recordAnthropic(Anthropic, { onStep: (s) => steps.push(s) });
+      const c = client({ json: MESSAGE }, { json: MESSAGE });
+      await c.messages.create(request);
+      await c.beta.messages.create(request);
+      expect(steps).toHaveLength(2);
+    } finally {
+      protos.forEach((p, i) => {
+        p.create = originals[i] as never;
+      });
+    }
+  });
+});
+
 describe('streaming', () => {
   const streamed = {
     model: 'claude-opus-5-5',

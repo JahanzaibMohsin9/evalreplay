@@ -8,7 +8,7 @@ Turn what your AI agent actually did into tests that run in CI.
 2. **Turn traces into test cases** with assertions: the right tool was called, its arguments are valid, the cost stayed under a limit.
 3. **Re-run the cases on every pull request** and see the pass rate, the cost change and anything that got worse.
 
-> Status: early development. `@evalreplay/core` has the trace format, the case format, assertion checking and the runner with replay mode and reports; recorders for the OpenAI and Anthropic SDKs record model calls, and the `evalreplay` CLI runs cases, captures runs as cases and compares with a baseline. The CarryPay example is next (see [PLAN.md](PLAN.md)).
+> Status: early development. `@evalreplay/core` has the trace format, the case format, assertion checking and the runner with replay mode and reports; recorders for the OpenAI and Anthropic SDKs record model calls, and the `evalreplay` CLI runs cases, captures runs as cases and compares with a baseline. The [CarryPay example](examples/carrypay) runs 16 cases against a real payment agent, offline. The GitHub Action is next (see [PLAN.md](PLAN.md)).
 
 ## Packages
 
@@ -18,6 +18,10 @@ Turn what your AI agent actually did into tests that run in CI.
 | [`@evalreplay/recorder-openai`](packages/recorder-openai)       | Records OpenAI SDK calls (Chat Completions, Responses, OpenAI-compatible providers)               |
 | [`@evalreplay/recorder-anthropic`](packages/recorder-anthropic) | Records Anthropic SDK calls, priced at Claude list prices                                         |
 | [`evalreplay`](packages/cli)                                    | The command line: `run`, `capture`, `baseline save`, `run --compare baseline`                     |
+
+## Example
+
+[`examples/carrypay`](examples/carrypay): 16 cases for CarryPay's payment agent (verified addresses only, a payee checked before every payment, scams flagged), run against CarryPay's own code and its recorded decisions, with no API key. evalreplay's CI runs them, and checks that a broken tool fails the run.
 
 ## Docs
 

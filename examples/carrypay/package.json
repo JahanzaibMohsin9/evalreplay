@@ -1,0 +1,22 @@
+{
+  "name": "@evalreplay/example-carrypay",
+  "version": "0.0.0",
+  "private": true,
+  "description": "evalreplay cases for CarryPay's payment agent, run against CarryPay's own code.",
+  "type": "module",
+  "scripts": {
+    "fetch": "node scripts/fetch-carrypay.mjs",
+    "eval": "evalreplay run",
+    "eval:broken": "node scripts/broken-tool.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "0.133.0",
+    "@evalreplay/core": "workspace:*",
+    "@evalreplay/recorder-anthropic": "workspace:*",
+    "@evalreplay/recorder-openai": "workspace:*",
+    "evalreplay": "workspace:*",
+    "openai": "7.33.0",
+    "viem": "2.57.7",
+    "zod": "4.6.7"
+  }
+}
