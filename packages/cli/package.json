@@ -1,0 +1,30 @@
+{
+  "name": "evalreplay",
+  "version": "0.0.0",
+  "description": "Turn what your AI agent did into tests that run in CI: the evalreplay command line.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "evalreplay": "./dist/bin.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/main.d.ts",
+      "import": "./dist/main.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@evalreplay/core": "workspace:*",
+    "yaml": "2.9.1"
+  }
+}

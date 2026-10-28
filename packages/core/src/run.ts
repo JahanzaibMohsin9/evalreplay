@@ -46,22 +46,31 @@ export class TimeoutError extends Error {
 
 const shown = (cwd: string, file: string) => relative(cwd, file).split('\\').join('/');
 
-/** Every trace in the files matching the patterns, by id. Unreadable lines are reported. */
-async function loadTraces(
-  patterns: string | string[],
-  cwd: string,
-): Promise<{ traces: Map<string, Trace>; errors: string[] }> {
-  const files = (
+export interface LoadedTraces {
+  /** By id; when two files have the same id, the first file in path order wins. */
+  traces: Map<string, Trace>;
+  /** The absolute path of the file each trace came from, by id. */
+  files: Map<string, string>;
+  /** Lines that could not be read, with their file. */
+  errors: string[];
+}
+
+/** Every trace in the JSONL files matching the patterns. Unreadable lines are reported. */
+export async function loadTraces(patterns: string | string[], cwd: string): Promise<LoadedTraces> {
+  const paths = (
     await glob(patterns, { cwd, absolute: true, ignore: ['**/node_modules/**'] })
   ).sort();
-  const traces = new Map<string, Trace>();
-  const errors: string[] = [];
-  for (const file of files) {
+  const loaded: LoadedTraces = { traces: new Map(), files: new Map(), errors: [] };
+  for (const file of paths) {
     const { traces: read, errors: bad } = await readTraceFile(file);
-    errors.push(...bad.map((e) => `${shown(cwd, file)}: ${e.message}`));
-    for (const t of read) if (!traces.has(t.id)) traces.set(t.id, t);
+    loaded.errors.push(...bad.map((e) => `${shown(cwd, file)}: ${e.message}`));
+    for (const t of read) {
+      if (loaded.traces.has(t.id)) continue;
+      loaded.traces.set(t.id, t);
+      loaded.files.set(t.id, file);
+    }
   }
-  return { traces, errors };
+  return loaded;
 }
 
 function toOutput(value: AgentOutput | unknown): Trace['output'] {

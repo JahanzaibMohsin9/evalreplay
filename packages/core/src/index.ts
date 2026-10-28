@@ -75,10 +75,20 @@ export {
 } from './config.js';
 export { ReplayMissError, currentRun, errorInfo, type RunContext, type ToolFn } from './context.js';
 export { costOf, priceFor, type ModelPrice, type Prices } from './prices.js';
-export { TimeoutError, runCases, type RunOptions, type RunOutcome } from './run.js';
+export {
+  TimeoutError,
+  loadTraces,
+  runCases,
+  type LoadedTraces,
+  type RunOptions,
+  type RunOutcome,
+} from './run.js';
+export { DEFAULTS } from './config.js';
 export {
   REPORT_VERSION,
+  readReport,
   renderMarkdown,
+  totalCost,
   writeReport,
   type AssertionReport,
   type CaseReport,
@@ -94,3 +104,11 @@ export {
   type CallHooks,
   type StreamHooks,
 } from './recording.js';
+export {
+  compareReports,
+  renderComparison,
+  type CaseChange,
+  type CaseNumbers,
+  type CompareOptions,
+  type Comparison,
+} from './compare.js';

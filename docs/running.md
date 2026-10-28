@@ -69,7 +69,7 @@ const { report, traces } = await runCases(config, { cwd: dir });
 await writeReport(report, traces, resolve(dir, config.outDir ?? '.evalreplay/report'));
 ```
 
-The `evalreplay run` command in phase 1 will do this for you.
+The [`evalreplay run`](cli.md) command does this for you.
 
 `runCases` takes a `filter` to run some of the cases, and `onRun`, called after every run, to show progress. Case files that don't load are reported in `report.errors`, and the other cases still run.
 

@@ -1,0 +1,8 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // core's source, so this package typechecks and tests before core is built
+    "paths": { "@evalreplay/core": ["../core/src/index.ts"] }
+  },
+  "include": ["src"]
+}

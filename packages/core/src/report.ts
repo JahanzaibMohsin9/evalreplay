@@ -1,5 +1,6 @@
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
+import { type Comparison, renderComparison } from './compare.js';
 import { serializeTraces } from './jsonl.js';
 import type { ErrorInfo, Trace } from './trace.js';
 
@@ -63,6 +64,8 @@ export interface Report {
   cases: CaseReport[];
   /** Case and trace files that could not be loaded. */
   errors: string[];
+  /** Set when the run was compared with a baseline report. */
+  comparison?: Comparison;
 }
 
 const sum = (values: number[]) => values.reduce((a, b) => a + b, 0);
@@ -124,6 +127,8 @@ export function renderMarkdown(report: Report): string {
     }
   }
 
+  if (report.comparison) lines.push('', ...renderComparison(report.comparison));
+
   const failing = report.cases.filter((c) => !c.pass);
   if (failing.length) {
     lines.push('', '## Failures');
@@ -154,6 +159,23 @@ export interface WrittenReport {
 }
 
 /** Writes `report.json`, `report.md` and the runs' traces as `traces.jsonl` into `dir`. */
+/** Reads a report.json, e.g. a saved baseline. */
+export async function readReport(path: string): Promise<Report> {
+  let report: unknown;
+  try {
+    report = JSON.parse(await readFile(path, 'utf8'));
+  } catch (err) {
+    throw new Error(`cannot read the report ${path}: ${(err as Error).message}`, { cause: err });
+  }
+  const version = (report as { version?: unknown } | null)?.version;
+  if (version !== REPORT_VERSION) {
+    throw new Error(
+      `${path} is not an evalreplay report (version ${String(version)}, expected ${REPORT_VERSION})`,
+    );
+  }
+  return report as Report;
+}
+
 export async function writeReport(
   report: Report,
   traces: readonly Trace[],
