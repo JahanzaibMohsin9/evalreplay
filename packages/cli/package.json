@@ -1,8 +1,28 @@
 {
   "name": "evalreplay",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Turn what your AI agent did into tests that run in CI: the evalreplay command line.",
+  "keywords": [
+    "ai",
+    "agents",
+    "llm",
+    "evals",
+    "testing",
+    "ci",
+    "cli",
+    "regression"
+  ],
+  "homepage": "https://github.com/JahanzaibMohsin9/evalreplay#readme",
+  "bugs": {
+    "url": "https://github.com/JahanzaibMohsin9/evalreplay/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JahanzaibMohsin9/evalreplay.git",
+    "directory": "packages/cli"
+  },
   "license": "MIT",
+  "author": "Jahanzeb Mohsin",
   "type": "module",
   "bin": {
     "evalreplay": "./dist/bin.js"
@@ -19,12 +39,15 @@
   "engines": {
     "node": ">=22"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@evalreplay/core": "workspace:*",
+    "@evalreplay/core": "workspace:^",
     "yaml": "2.9.1"
   }
 }

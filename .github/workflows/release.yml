@@ -1,0 +1,52 @@
+name: Release
+
+# Push a tag like v0.1.0 to publish every package at that version to npm and create the
+# GitHub release. See docs/releasing.md.
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: write # the release, and the v0 tag the action is used by
+  id-token: write # npm provenance
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm test
+
+      - name: The tag matches the package versions
+        run: node scripts/release.mjs check "${GITHUB_REF_NAME#v}"
+
+      # private packages (the action, the example) are skipped, and so is a version npm has
+      - name: Publish to npm
+        run: pnpm -r publish --access public --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: 'true'
+
+      - name: GitHub release
+        run: |
+          node scripts/release.mjs notes "${GITHUB_REF_NAME#v}" > "$RUNNER_TEMP/notes.md"
+          gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes-file "$RUNNER_TEMP/notes.md"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      # `uses: JahanzaibMohsin9/evalreplay@v0` follows the latest 0.x release
+      - name: Move the major tag
+        run: |
+          major="${GITHUB_REF_NAME%%.*}"
+          git tag -f "$major" "$GITHUB_REF_NAME"
+          git push -f origin "refs/tags/$major"
