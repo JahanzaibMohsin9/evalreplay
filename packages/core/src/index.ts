@@ -36,6 +36,15 @@ export {
   type NormalizeContext,
 } from './cases.js';
 export {
+  describeAssertion,
+  evaluateAssertion,
+  evaluateAssertions,
+  evaluateCase,
+  type AssertionResult,
+  type CaseResult,
+} from './assert.js';
+export { compileSchema } from './schema.js';
+export {
   CaseLoadError,
   loadCaseFile,
   loadCases,

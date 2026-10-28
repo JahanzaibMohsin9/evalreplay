@@ -39,22 +39,24 @@ Case files are strict: a key the format doesn't know, such as a misspelled `asse
 
 Each list item holds exactly one assertion.
 
-| Assertion         | Value                                       | Passes when                                                           |
-| ----------------- | ------------------------------------------- | --------------------------------------------------------------------- |
-| `tool_called`     | tool name, or `{ tool, times }`             | the tool was called (exactly `times` times, if given)                 |
-| `tool_not_called` | tool name                                   | the tool was never called                                             |
-| `tool_order`      | list of at least two tool names             | the tools were called in this order (other calls may come in between) |
-| `tool_args_match` | `{ tool, schema }`                          | every call to the tool has arguments valid against the JSON Schema    |
-| `output_contains` | text, or a list of texts                    | the final output contains every text                                  |
-| `output_matches`  | regular expression, or `{ pattern, flags }` | the final output matches                                              |
-| `output_schema`   | JSON Schema                                 | the structured output is valid against it                             |
-| `max_cost_usd`    | number                                      | the run cost at most this much                                        |
-| `max_latency_ms`  | number                                      | the run took at most this long                                        |
-| `max_steps`       | integer                                     | the run had at most this many steps (model and tool calls)            |
-| `no_tool_errors`  | `true`                                      | no tool call threw                                                    |
-| `custom`          | `{ name, check }` (TypeScript only)         | `check(trace)` returns `true`                                         |
+| Assertion         | Value                                       | Passes when                                                                     |
+| ----------------- | ------------------------------------------- | ------------------------------------------------------------------------------- |
+| `tool_called`     | tool name, or `{ tool, times }`             | the tool was called (exactly `times` times, if given)                           |
+| `tool_not_called` | tool name                                   | the tool was never called                                                       |
+| `tool_order`      | list of at least two tool names             | the tools were called in this order (other calls may come in between)           |
+| `tool_args_match` | `{ tool, schema }`                          | the tool was called, and every call has arguments valid against the JSON Schema |
+| `output_contains` | text, or a list of texts                    | the final output contains every text                                            |
+| `output_matches`  | regular expression, or `{ pattern, flags }` | the final output matches                                                        |
+| `output_schema`   | JSON Schema                                 | the structured output (or the text output parsed as JSON) is valid against it   |
+| `max_cost_usd`    | number                                      | the run cost at most this much; an unknown cost fails                           |
+| `max_latency_ms`  | number                                      | the run took at most this long                                                  |
+| `max_steps`       | integer                                     | the run had at most this many steps (model and tool calls)                      |
+| `no_tool_errors`  | `true`                                      | no tool call threw                                                              |
+| `custom`          | `{ name, check }` (TypeScript only)         | `check(trace)` returns `true`                                                   |
 
-A `schema` is either a path to a JSON file, relative to the case file, or the schema written inline. Schema files are read when cases load, so a missing file is reported before anything runs.
+A `schema` is either a path to a JSON file, relative to the case file, or the schema written inline. Schema files are read and compiled when cases load, so a missing file or a broken schema is reported before anything runs. Schemas use JSON Schema 2020-12 unless `$schema` names draft-07 or 2019-09, and `format` (`email`, `date-time`, `uri`, ...) is checked. To use a zod schema in a `.case.ts` file, pass `z.toJSONSchema(schema)`.
+
+The tool assertions look at the tool steps in the trace: the calls that actually ran, not the calls a model proposed.
 
 An LLM-as-judge assertion (`judge`) will come later and will be marked as non-deterministic in reports.
 
@@ -117,3 +119,26 @@ cases/other.yaml: duplicate case id "pay-tuition-eur" (also in cases/payments/pa
 ```
 
 The loader also reports patterns that match no files, and YAML that doesn't parse.
+
+## Checking a run
+
+`evaluateCase` checks a case's assertions against the trace of one run and returns one result per assertion, in order:
+
+```ts
+import { evaluateCase } from '@evalreplay/core';
+
+const result = await evaluateCase(testCase, trace);
+for (const r of result.results) {
+  console.log(r.pass ? 'pass' : 'FAIL', r.label, '-', r.message);
+}
+```
+
+```
+pass tool_called: compare_routes - compare_routes was called once (step 2)
+FAIL tool_not_called: execute_payment - execute_payment was called once (step 4)
+FAIL max_cost_usd: 0.25 - cost $0.31, over the $0.25 limit; most expensive: step 3 (gpt-4.1, $0.22)
+```
+
+Each result has the assertion, its `label`, `pass`, a `message` saying what was found, and, when one step broke the assertion, its `stepIndex` in `trace.steps` (messages count steps from 1). A case passes when every assertion passes and the run itself didn't fail: a trace with an `error` fails the case and the result carries it as `runError`.
+
+Checking never throws. A custom check that throws, or returns something other than `true`, `false` or a message, is a failed assertion. Custom checks get a copy of the trace, so one can't change what the next assertion sees.

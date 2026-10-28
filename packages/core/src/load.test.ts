@@ -200,6 +200,21 @@ describe('YAML case errors point to the file and line', () => {
     ]);
   });
 
+  it('a JSON Schema that does not compile', async () => {
+    await files({
+      'odd.json': JSON.stringify({ $schema: 'http://json-schema.org/draft-04/schema#' }),
+    });
+    const yaml =
+      'id: x\ninput: hi\nassert:\n' +
+      '  - output_schema: { type: nope }\n' +
+      '  - tool_args_match: { tool: a, schema: odd.json }\n';
+    expect(await errorsOf('x.yaml', yaml)).toEqual([
+      expect.stringMatching(/^x\.yaml:4: assert\.0\.output_schema: invalid JSON Schema: .*type/),
+      'x.yaml:5: assert.1.tool_args_match.schema: invalid JSON Schema in odd.json: ' +
+        'unsupported $schema http://json-schema.org/draft-04/schema# (use draft-07, 2019-09 or 2020-12)',
+    ]);
+  });
+
   it('a custom assertion, which needs TypeScript', async () => {
     const yaml = 'id: x\ninput: hi\nassert:\n  - custom: { name: n }\n';
     expect(await errorsOf('x.yaml', yaml)).toEqual([
