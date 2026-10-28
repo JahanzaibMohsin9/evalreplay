@@ -44,12 +44,18 @@ export const LlmStepSchema = z
     startedAt: timestamp.optional(),
     provider: z.string().describe('gen_ai.provider.name, e.g. "openai", "anthropic"'),
     model: z.string().describe('gen_ai.request.model'),
-    inputTokens: count.describe('gen_ai.usage.input_tokens'),
+    inputTokens: count.describe('gen_ai.usage.input_tokens, including cached input tokens'),
     outputTokens: count.describe('gen_ai.usage.output_tokens'),
     cachedInputTokens: count.optional().describe('Input tokens served from the provider cache'),
+    cacheWriteInputTokens: count
+      .optional()
+      .describe(
+        'Input tokens written to the provider cache, which some providers charge extra for',
+      ),
     costUsd: usd.optional().describe('Omitted when the price of the model is unknown'),
     latencyMs: durationMs,
     finishReason: z.string().optional().describe('gen_ai.response.finish_reasons[0]'),
+    error: ErrorInfoSchema.optional().describe('Set when the call failed, e.g. a rate limit'),
     output: z
       .looseObject({
         text: z.string().optional(),

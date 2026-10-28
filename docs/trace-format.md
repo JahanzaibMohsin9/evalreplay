@@ -87,19 +87,21 @@ An **Error** has `message` and an optional `type` (error class or code).
 
 ### Model call (`type: "llm"`)
 
-| Field               | Type                    | Required | OpenTelemetry GenAI                        |
-| ------------------- | ----------------------- | -------- | ------------------------------------------ |
-| `provider`          | string                  | yes      | `gen_ai.provider.name`                     |
-| `model`             | string                  | yes      | `gen_ai.request.model`                     |
-| `inputTokens`       | integer ≥ 0             | yes      | `gen_ai.usage.input_tokens`                |
-| `outputTokens`      | integer ≥ 0             | yes      | `gen_ai.usage.output_tokens`               |
-| `cachedInputTokens` | integer ≥ 0             | no       |                                            |
-| `costUsd`           | number ≥ 0              | no       | Left out when the model's price is unknown |
-| `latencyMs`         | number ≥ 0              | yes      | span duration                              |
-| `finishReason`      | string                  | no       | `gen_ai.response.finish_reasons[0]`        |
-| `startedAt`         | date-time               | no       | span start                                 |
-| `output.text`       | string                  | no       |                                            |
-| `output.toolCalls`  | `{ id?, name, args }[]` | no       | the tool calls the model asked for         |
+| Field                   | Type                    | Required | OpenTelemetry GenAI                                  |
+| ----------------------- | ----------------------- | -------- | ---------------------------------------------------- |
+| `provider`              | string                  | yes      | `gen_ai.provider.name`                               |
+| `model`                 | string                  | yes      | `gen_ai.request.model`                               |
+| `inputTokens`           | integer ≥ 0             | yes      | `gen_ai.usage.input_tokens`, including cached tokens |
+| `outputTokens`          | integer ≥ 0             | yes      | `gen_ai.usage.output_tokens`                         |
+| `cachedInputTokens`     | integer ≥ 0             | no       | Input tokens read from the provider cache            |
+| `cacheWriteInputTokens` | integer ≥ 0             | no       | Input tokens written to the provider cache           |
+| `costUsd`               | number ≥ 0              | no       | Left out when the model's price is unknown           |
+| `latencyMs`             | number ≥ 0              | yes      | span duration                                        |
+| `finishReason`          | string                  | no       | `gen_ai.response.finish_reasons[0]`                  |
+| `startedAt`             | date-time               | no       | span start                                           |
+| `output.text`           | string                  | no       |                                                      |
+| `output.toolCalls`      | `{ id?, name, args }[]` | no       | the tool calls the model asked for                   |
+| `error`                 | Error                   | no       | Set when the call failed, e.g. a rate limit          |
 
 ### Tool call (`type: "tool"`)
 

@@ -1,0 +1,32 @@
+{
+  "name": "@evalreplay/recorder-openai",
+  "version": "0.0.0",
+  "description": "Records every OpenAI SDK call an agent makes (Chat Completions and Responses, including OpenAI-compatible providers) into its evalreplay trace.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@evalreplay/core": "workspace:*"
+  },
+  "peerDependencies": {
+    "openai": ">=6.0.0"
+  },
+  "devDependencies": {
+    "openai": "7.33.0"
+  }
+}

@@ -3,6 +3,7 @@ import { dirname, resolve } from 'node:path';
 import { createJiti } from 'jiti';
 import { z } from 'zod';
 import type { RunContext } from './context.js';
+import type { Prices } from './prices.js';
 import type { Message } from './trace.js';
 
 /** The case input the agent gets: the message list, ending with the user's message. */
@@ -34,6 +35,11 @@ export interface Config {
   timeoutMs?: number;
   /** Where `report.json`, `report.md` and `traces.jsonl` go. Default: `.evalreplay/report`. */
   outDir?: string;
+  /**
+   * USD per million tokens by model id, for model calls a recorder couldn't price (the Anthropic
+   * recorder knows Claude's list prices; the OpenAI one knows none).
+   */
+  prices?: Prices;
 }
 
 export const DEFAULTS = {
@@ -55,6 +61,17 @@ const ConfigSchema = z.strictObject({
   concurrency: z.int().min(1).optional(),
   timeoutMs: z.number().positive().optional(),
   outDir: z.string().min(1).optional(),
+  prices: z
+    .record(
+      z.string(),
+      z.strictObject({
+        input: z.number().nonnegative(),
+        output: z.number().nonnegative(),
+        cachedInput: z.number().nonnegative().optional(),
+        cacheWrite: z.number().nonnegative().optional(),
+      }),
+    )
+    .optional(),
 });
 
 /** Declares the config in `evalreplay.config.ts`: `export default defineConfig({ ... })`. */
