@@ -20,6 +20,8 @@ Recorded in PLAN.md section 8: the evalreplay name, LiveKit instead of Mastra, t
 - Register the names before someone else does: npm org `evalreplay`, PyPI project `evalreplay`, GitHub org `evalreplay` (needs your accounts).
 - Phase 0.3: ScopeSignal README and CI; pin the repos on the GitHub profile.
 
+- **Phase 1.2 case format.** `packages/core/src/cases.ts` (case schema, assertion specs, `defineCase`, normalization) and `load.ts` (`loadCases` / `loadCaseFile` for YAML and `*.case.ts`, errors with file and line, duplicate ids, patterns with no match). Documented in `docs/cases.md`. CI badge in the README. Branch `case-format`.
+
 ### Next
 
-Phase 1.2 in `packages/core`: the case format (YAML + `*.case.ts`) and its loader, then the assertions from PLAN.md 3.3.
+Phase 1.3 in `packages/core`: evaluate the assertions against a trace (`tool_args_match` and `output_schema` need a JSON Schema validator, e.g. Ajv), with a result per assertion that names the step that failed.
