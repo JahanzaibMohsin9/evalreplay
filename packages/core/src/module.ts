@@ -37,5 +37,8 @@ export async function importDefault(file: string): Promise<unknown> {
     });
     loaders.set(key, jiti);
   }
+  // the file itself is read afresh each time (a config edited between two loads); the project
+  // modules it imports stay cached, so they load once and a recorder patches the copy in use
+  for (const key of [file, file.split('\\').join('/')]) Reflect.deleteProperty(jiti.cache, key);
   return (await jiti.import<{ default?: unknown }>(file)).default;
 }

@@ -119,6 +119,26 @@ describe('evalreplay run', () => {
     expect(none).toMatchObject({ code: 1, err: 'no cases to run' });
   });
 
+  it('fails on the pass rate instead when the config sets minPassRate', async () => {
+    const config = (min: number) =>
+      CONFIG.replace(
+        'concurrency: 2,',
+        `concurrency: 2,
+  minPassRate: ${min},`,
+      );
+    await files({
+      'evalreplay.config.mjs': config(0.5),
+      'cases/pay.yaml': PAY,
+      'cases/now.yaml': PAY_NOW,
+    });
+    expect((await cli('run')).code).toBe(0); // 1 of 2 passed: 50% is enough
+    // a second file: Node keeps an .mjs module for the life of the process
+    await files({ 'strict.config.mjs': config(0.9) });
+    const r = await cli('run', '--config', 'strict.config.mjs');
+    expect(r.code).toBe(1);
+    expect(r.out).toContain('Pass rate 50% is below minPassRate 90%');
+  });
+
   it('exits 1 when a case file does not load, and still runs the rest', async () => {
     await files({
       'evalreplay.config.mjs': CONFIG,

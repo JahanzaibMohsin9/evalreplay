@@ -68,10 +68,10 @@ The trace is looked up in the config's `traces` files and in the last run's `tra
 
 ## Exit codes
 
-| Code | When                                                                                            |
-| ---- | ----------------------------------------------------------------------------------------------- |
-| 0    | Every case passed; with `--compare`, no case got worse                                          |
-| 1    | A case failed (with `--compare`: got worse), a case file didn't load, or `--case` named no case |
-| 2    | A usage or config error: unknown option, missing config, missing baseline                       |
+| Code | When                                                                                                                                           |
+| ---- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0    | Every case passed; with `--compare`, no case got worse. With `minPassRate` in the config, the pass rate decides instead of "every case passed" |
+| 1    | A case failed (with `--compare`: got worse), a case file didn't load, or `--case` named no case                                                |
+| 2    | A usage or config error: unknown option, missing config, missing baseline                                                                      |
 
 Colors are on in a terminal and off otherwise; `NO_COLOR` turns them off and `FORCE_COLOR` on.

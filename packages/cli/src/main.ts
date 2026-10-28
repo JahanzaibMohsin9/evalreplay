@@ -175,9 +175,21 @@ async function run(args: string[], io: Io, s: Style): Promise<number> {
   io.out(summary(report, s));
   io.out(s.dim(`\nReport: ${shown(io, written.markdown)} · traces: ${shown(io, written.traces)}`));
 
-  const failed = report.comparison
-    ? report.comparison.regressed.length > 0
-    : report.summary.casesPassed < report.summary.cases;
+  const t = report.summary;
+  const min = cfg.minPassRate;
+  const belowMin = min !== undefined && t.passRate < min;
+  if (belowMin) {
+    io.out(
+      s.fail(
+        `Pass rate ${Math.round(t.passRate * 100)}% is below minPassRate ${Math.round(min * 100)}%`,
+      ),
+    );
+  }
+  // minPassRate, when set, decides instead of "any case failed"; a case that got worse always fails
+  const failed =
+    (report.comparison?.regressed.length ?? 0) > 0 ||
+    belowMin ||
+    (min === undefined && !report.comparison && t.casesPassed < t.cases);
   return failed || report.errors.length || ids.some((i) => !seen.has(i)) ? 1 : 0;
 }
 

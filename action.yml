@@ -1,0 +1,47 @@
+name: evalreplay
+description: Run your AI agent's test cases on every pull request and comment with the pass rate, the cost change and what got worse.
+author: Jahanzeb Mohsin
+branding:
+  icon: check-circle
+  color: green
+
+inputs:
+  working-directory:
+    description: The folder with evalreplay.config.ts, relative to the repository.
+    default: .
+  command:
+    description: How to run the project's evalreplay CLI. It must be the project's own install, which its recorders share.
+    default: npx --no-install evalreplay
+  args:
+    description: More arguments for `evalreplay run`, e.g. `--tag smoke`.
+    default: ''
+  baseline:
+    description: The saved baseline report, relative to working-directory. On a pull request it is read from the base commit.
+    default: .evalreplay/baseline.json
+  max-cost-increase:
+    description: A rise in a case's cost per run above this percentage counts as worse (the CLI's default is 20).
+    default: ''
+  comment:
+    description: Comment on the pull request (and update that comment on later runs).
+    default: 'true'
+  github-token:
+    description: 'Token for reading the baseline and commenting; needs `pull-requests: write` to comment.'
+    default: ${{ github.token }}
+
+outputs:
+  pass-rate:
+    description: Share of runs that passed, from 0 to 1.
+  cases:
+    description: Number of cases run.
+  cases-passed:
+    description: Number of cases whose every run passed.
+  regressions:
+    description: Number of cases that got worse than the baseline.
+  cost-usd:
+    description: Total cost of the runs in USD, when every model call had a price.
+  report-dir:
+    description: Folder with report.json, report.md and traces.jsonl, e.g. to upload as an artifact.
+
+runs:
+  using: node24
+  main: packages/github-action/dist/index.js

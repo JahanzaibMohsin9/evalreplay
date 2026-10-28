@@ -36,6 +36,11 @@ export interface Config {
   /** Where `report.json`, `report.md` and `traces.jsonl` go. Default: `.evalreplay/report`. */
   outDir?: string;
   /**
+   * For CI: fail the run when the share of passing runs is below this, from 0 to 1. Without it,
+   * any failing case fails the run (with `--compare`, any case that got worse).
+   */
+  minPassRate?: number;
+  /**
    * USD per million tokens by model id, for model calls a recorder couldn't price (the Anthropic
    * recorder knows Claude's list prices; the OpenAI one knows none).
    */
@@ -61,6 +66,7 @@ const ConfigSchema = z.strictObject({
   concurrency: z.int().min(1).optional(),
   timeoutMs: z.number().positive().optional(),
   outDir: z.string().min(1).optional(),
+  minPassRate: z.number().min(0).max(1).optional(),
   prices: z
     .record(
       z.string(),

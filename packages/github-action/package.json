@@ -1,0 +1,15 @@
+{
+  "name": "@evalreplay/github-action",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The evalreplay GitHub Action: runs a project's cases on a pull request and comments with the pass rate, cost change and regressions.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "@evalreplay/core": "workspace:*"
+  }
+}
