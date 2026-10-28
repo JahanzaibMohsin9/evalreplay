@@ -20,6 +20,29 @@ export {
   type Trace,
 } from './trace.js';
 export {
+  ASSERTION_NAMES,
+  ASSERTION_SPECS,
+  CaseInputSchema,
+  defineCase,
+  normalizeCase,
+  type Assertion,
+  type AssertionInput,
+  type AssertionName,
+  type Case,
+  type CaseDefinition,
+  type CaseIssue,
+  type CustomCheck,
+  type JsonSchema,
+  type NormalizeContext,
+} from './cases.js';
+export {
+  CaseLoadError,
+  loadCaseFile,
+  loadCases,
+  type LoadCasesOptions,
+  type LoadedCases,
+} from './load.js';
+export {
   TraceParseError,
   appendTrace,
   parseTrace,
