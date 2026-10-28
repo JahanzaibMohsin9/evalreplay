@@ -20,17 +20,18 @@ export default defineConfig({
 
 `agent` gets the case input (`{ messages }`) and a run context, and returns the answer: a string, `{ text, structured }`, or a value that becomes the structured output.
 
-| Field         | Default                         | Meaning                                                                                       |
-| ------------- | ------------------------------- | --------------------------------------------------------------------------------------------- |
-| `cases`       |                                 | Glob patterns for case files                                                                  |
-| `agent`       |                                 | The function the runner calls                                                                 |
-| `traces`      | `.evalreplay/traces/**/*.jsonl` | Where the traces named by `from_trace` are                                                    |
-| `concurrency` | `4`                             | Runs at the same time                                                                         |
-| `timeoutMs`   | `120000`                        | A run that takes longer fails with a `TimeoutError`                                           |
-| `outDir`      | `.evalreplay/report`            | Where the report and the runs' traces are written                                             |
-| `name`        | `agent`                         | Agent name written into each trace                                                            |
-| `version`     |                                 | Agent version written into each trace, e.g. a git SHA                                         |
-| `prices`      |                                 | USD per million tokens by model id, for model calls a [recorder](recorders.md) couldn't price |
+| Field         | Default                         | Meaning                                                                                        |
+| ------------- | ------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `cases`       |                                 | Glob patterns for case files                                                                   |
+| `agent`       |                                 | The function the runner calls                                                                  |
+| `traces`      | `.evalreplay/traces/**/*.jsonl` | Where the traces named by `from_trace` are                                                     |
+| `concurrency` | `4`                             | Runs at the same time                                                                          |
+| `timeoutMs`   | `120000`                        | A run that takes longer fails with a `TimeoutError`                                            |
+| `outDir`      | `.evalreplay/report`            | Where the report and the runs' traces are written                                              |
+| `minPassRate` |                                 | For CI: the run fails when fewer runs pass than this share (0 to 1), instead of on any failure |
+| `name`        | `agent`                         | Agent name written into each trace                                                             |
+| `version`     |                                 | Agent version written into each trace, e.g. a git SHA                                          |
+| `prices`      |                                 | USD per million tokens by model id, for model calls a [recorder](recorders.md) couldn't price  |
 
 Paths in the config are relative to the config file. A config file with an unknown key, such as a misspelled `concurency`, is an error.
 

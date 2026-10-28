@@ -526,6 +526,18 @@ describe('loadConfig', () => {
     );
   });
 
+  it('reads an edited TypeScript config again', async () => {
+    const write = (n: number) =>
+      files({
+        'evalreplay.config.ts': `export default { cases: 'c/*.yaml', agent: () => 'x', concurrency: ${n} };
+`,
+      });
+    await write(1);
+    expect((await loadConfig(undefined, dir)).config.concurrency).toBe(1);
+    await write(3);
+    expect((await loadConfig(undefined, dir)).config.concurrency).toBe(3);
+  });
+
   it('resolves the path aliases of the nearest tsconfig.json, in the config and case files', async () => {
     await files({
       'tsconfig.json':

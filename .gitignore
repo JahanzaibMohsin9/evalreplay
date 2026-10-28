@@ -1,5 +1,7 @@
 node_modules/
 dist/
+# the GitHub Action runs from its committed build
+!packages/github-action/dist/
 coverage/
 *.tsbuildinfo
 .env

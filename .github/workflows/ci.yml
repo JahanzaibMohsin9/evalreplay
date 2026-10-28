@@ -47,15 +47,39 @@ jobs:
       - name: Build
         run: pnpm build
 
-      # CarryPay's agent, offline: its recorded decisions replayed in its sandbox (no API key)
-      - name: Example, CarryPay
+      # GitHub runs the action from the committed dist/, so it must match the source
+      - name: Action dist is up to date
+        run: git diff --exit-code -- packages/github-action/dist || (echo "run pnpm build and commit packages/github-action/dist" && exit 1)
+
+  # CarryPay's agent, offline: its recorded decisions replayed in its sandbox (no API key), run
+  # through this repository's own action, which comments on the pull request
+  carrypay-example:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+
+      - name: Fetch CarryPay
         working-directory: examples/carrypay
-        run: |
-          pnpm run fetch
-          pnpm run eval --compare baseline
+        run: pnpm run fetch
+
+      - name: Run the cases
+        uses: ./
+        with:
+          working-directory: examples/carrypay
 
       # and a broken tool must fail the run
-      - name: Example, CarryPay with a broken tool
+      - name: Run the cases with a broken tool
         working-directory: examples/carrypay
         run: |
           if pnpm run eval:broken --compare baseline; then
